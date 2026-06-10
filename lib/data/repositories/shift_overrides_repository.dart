@@ -9,6 +9,7 @@ import '../local/database.dart' as db;
 abstract class ShiftOverridesRepository {
   Future<List<ShiftOverride>> getAll();
   Future<ShiftOverride?> getByDate(DateTime date);
+  Future<List<ShiftOverride>> getBetween(DateTime from, DateTime to);
   Future<ShiftOverride> upsertSingle(ShiftOverride override);
   Future<List<ShiftOverride>> createSwap({
     required DateTime dateA,
@@ -37,6 +38,12 @@ class ShiftOverridesRepositoryImpl implements ShiftOverridesRepository {
     final row = await _dao.getByDate(date);
     if (row == null) return null;
     return _mapToDomain(row);
+  }
+
+  @override
+  Future<List<ShiftOverride>> getBetween(DateTime from, DateTime to) async {
+    final rows = await _dao.getBetween(from, to);
+    return rows.map(_mapToDomain).toList();
   }
 
   @override

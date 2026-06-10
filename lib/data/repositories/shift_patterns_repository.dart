@@ -11,6 +11,7 @@ abstract class ShiftPatternsRepository {
   Future<List<ShiftPattern>> getAll();
   Future<List<ShiftPattern>> getActive();
   Future<ShiftPattern?> getActiveAt(DateTime date);
+  Future<List<ShiftPattern>> getActiveBetween(DateTime from, DateTime to);
   Future<ShiftPattern> create(ShiftPattern pattern);
   Future<void> update(ShiftPattern pattern);
   Future<void> deactivate(int id);
@@ -39,6 +40,15 @@ class ShiftPatternsRepositoryImpl implements ShiftPatternsRepository {
     final row = await _dao.getActiveAt(date);
     if (row == null) return null;
     return _mapToDomain(row);
+  }
+
+  @override
+  Future<List<ShiftPattern>> getActiveBetween(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final rows = await _dao.getActiveBetween(from, to);
+    return rows.map(_mapToDomain).toList();
   }
 
   @override
@@ -102,6 +112,20 @@ class ShiftPatternsRepositoryImpl implements ShiftPatternsRepository {
     if (pattern.validUntil != null &&
         !pattern.validFrom.isBefore(pattern.validUntil!)) {
       throw ArgumentError('validFrom must be before validUntil');
+    }
+
+    final invalidShiftTypes = [
+      ShiftType.extraWork,
+      ShiftType.optionalDayOff,
+      ShiftType.paidLeave,
+    ];
+
+    for (final type in pattern.cycle) {
+      if (invalidShiftTypes.contains(type)) {
+        throw ArgumentError(
+          'Cycle cannot contain extraWork, optionalDayOff, or paidLeave',
+        );
+      }
     }
   }
 

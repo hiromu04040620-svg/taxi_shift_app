@@ -23,6 +23,15 @@ class ShiftOverridesDao extends DatabaseAccessor<AppDatabase>
     )..where((t) => t.date.equals(dateStr))).getSingleOrNull();
   }
 
+  Future<List<ShiftOverride>> getBetween(DateTime from, DateTime to) {
+    final fromStr = const DateOnlyConverter().toSql(from);
+    final toStr = const DateOnlyConverter().toSql(to);
+    return (select(shiftOverrides)
+          ..where((t) => t.date.isBiggerOrEqualValue(fromStr))
+          ..where((t) => t.date.isSmallerOrEqualValue(toStr)))
+        .get();
+  }
+
   Future<int> insertOverride(ShiftOverridesCompanion companion) =>
       into(shiftOverrides).insert(companion);
 

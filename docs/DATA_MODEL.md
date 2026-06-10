@@ -97,6 +97,26 @@ startDate からの日数分繰り返し適用される。
 | createdAt | DATETIME | |
 | updatedAt | DATETIME | |
 
+## ShiftType の使用範囲
+
+ShiftType 列挙値は以下のように使い分ける。
+
+### ShiftPattern.cycle で使用可能な値（定期サイクル用）
+- workDay
+- afterDuty
+- dayOff
+
+### ShiftOverride.shiftType で使用可能な値（例外用）
+上記3つに加えて:
+- extraWork (公出)
+- optionalDayOff (任意休)
+- paidLeave (有休)
+
+Repository 層でバリデーションを実装:
+ShiftPatternsRepository.create/update で
+cycle に extraWork/optionalDayOff/paidLeave が含まれていたら
+ArgumentError をスロー。
+
 ## ShiftOverrides ビジネスルール
 
 ### OverrideStatus enum

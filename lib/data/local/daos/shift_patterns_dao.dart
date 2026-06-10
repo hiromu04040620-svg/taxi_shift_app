@@ -32,6 +32,20 @@ class ShiftPatternsDao extends DatabaseAccessor<AppDatabase>
         .getSingleOrNull();
   }
 
+  Future<List<ShiftPattern>> getActiveBetween(DateTime from, DateTime to) {
+    final fromStr = const DateOnlyConverter().toSql(from);
+    final toStr = const DateOnlyConverter().toSql(to);
+    return (select(shiftPatterns)
+          ..where((t) => t.isActive.equals(true))
+          ..where((t) => t.validFrom.isSmallerOrEqualValue(toStr))
+          ..where(
+            (t) =>
+                t.validUntil.isNull() |
+                t.validUntil.isBiggerOrEqualValue(fromStr),
+          ))
+        .get();
+  }
+
   Future<int> insert(ShiftPatternsCompanion companion) =>
       into(shiftPatterns).insert(companion);
 

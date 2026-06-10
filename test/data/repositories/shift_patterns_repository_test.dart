@@ -66,6 +66,21 @@ void main() {
     expect(() => repository.create(pattern), throwsArgumentError);
   });
 
+  test('create throws when cycle contains invalid ShiftType', () async {
+    final pattern = ShiftPattern(
+      id: 0,
+      name: 'A班',
+      workStyle: WorkStyle.alternateDay,
+      cycle: const [ShiftType.workDay, ShiftType.extraWork],
+      startDate: DateTime(2023),
+      validFrom: DateTime(2023),
+      isActive: true,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    expect(() => repository.create(pattern), throwsArgumentError);
+  });
+
   test('overlap check blocks overlapping active patterns', () async {
     final p1 = ShiftPattern(
       id: 0,
