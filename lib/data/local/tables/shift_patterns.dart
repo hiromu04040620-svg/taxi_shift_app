@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import '../converters/date_only_converter.dart';
 import 'mixins/timestamp_mixin.dart';
 
 @DataClassName('ShiftPattern')
@@ -7,8 +8,9 @@ class ShiftPatterns extends Table with TimestampMixin {
   TextColumn get name => text()();
   TextColumn get workStyle => text()();
   TextColumn get cycle => text()(); // JSON
-  DateTimeColumn get startDate => dateTime()(); // DATE
-  DateTimeColumn get validFrom => dateTime()(); // DATE
-  DateTimeColumn get validUntil => dateTime().nullable()(); // DATE NULL
+  TextColumn get startDate => text().map(const DateOnlyConverter())(); // DATE
+  TextColumn get validFrom => text().map(const DateOnlyConverter())(); // DATE
+  TextColumn get validUntil =>
+      text().map(const DateOnlyConverter()).nullable()(); // DATE NULL
   BoolColumn get isActive => boolean()();
 }

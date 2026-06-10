@@ -75,39 +75,33 @@ class $ShiftPatternsTable extends ShiftPatterns
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _startDateMeta = const VerificationMeta(
-    'startDate',
-  );
   @override
-  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
-    'start_date',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _validFromMeta = const VerificationMeta(
-    'validFrom',
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime, String> startDate =
+      GeneratedColumn<String>(
+        'start_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($ShiftPatternsTable.$converterstartDate);
   @override
-  late final GeneratedColumn<DateTime> validFrom = GeneratedColumn<DateTime>(
-    'valid_from',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _validUntilMeta = const VerificationMeta(
-    'validUntil',
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime, String> validFrom =
+      GeneratedColumn<String>(
+        'valid_from',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($ShiftPatternsTable.$convertervalidFrom);
   @override
-  late final GeneratedColumn<DateTime> validUntil = GeneratedColumn<DateTime>(
-    'valid_until',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime?, String> validUntil =
+      GeneratedColumn<String>(
+        'valid_until',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<DateTime?>($ShiftPatternsTable.$convertervalidUntiln);
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -186,28 +180,6 @@ class $ShiftPatternsTable extends ShiftPatterns
     } else if (isInserting) {
       context.missing(_cycleMeta);
     }
-    if (data.containsKey('start_date')) {
-      context.handle(
-        _startDateMeta,
-        startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_startDateMeta);
-    }
-    if (data.containsKey('valid_from')) {
-      context.handle(
-        _validFromMeta,
-        validFrom.isAcceptableOrUnknown(data['valid_from']!, _validFromMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_validFromMeta);
-    }
-    if (data.containsKey('valid_until')) {
-      context.handle(
-        _validUntilMeta,
-        validUntil.isAcceptableOrUnknown(data['valid_until']!, _validUntilMeta),
-      );
-    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -249,17 +221,23 @@ class $ShiftPatternsTable extends ShiftPatterns
         DriftSqlType.string,
         data['${effectivePrefix}cycle'],
       )!,
-      startDate: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}start_date'],
-      )!,
-      validFrom: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}valid_from'],
-      )!,
-      validUntil: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}valid_until'],
+      startDate: $ShiftPatternsTable.$converterstartDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}start_date'],
+        )!,
+      ),
+      validFrom: $ShiftPatternsTable.$convertervalidFrom.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}valid_from'],
+        )!,
+      ),
+      validUntil: $ShiftPatternsTable.$convertervalidUntiln.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}valid_until'],
+        ),
       ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -272,6 +250,15 @@ class $ShiftPatternsTable extends ShiftPatterns
   $ShiftPatternsTable createAlias(String alias) {
     return $ShiftPatternsTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<DateTime, String> $converterstartDate =
+      const DateOnlyConverter();
+  static TypeConverter<DateTime, String> $convertervalidFrom =
+      const DateOnlyConverter();
+  static TypeConverter<DateTime, String> $convertervalidUntil =
+      const DateOnlyConverter();
+  static TypeConverter<DateTime?, String?> $convertervalidUntiln =
+      NullAwareTypeConverter.wrap($convertervalidUntil);
 }
 
 class ShiftPattern extends DataClass implements Insertable<ShiftPattern> {
@@ -306,10 +293,20 @@ class ShiftPattern extends DataClass implements Insertable<ShiftPattern> {
     map['name'] = Variable<String>(name);
     map['work_style'] = Variable<String>(workStyle);
     map['cycle'] = Variable<String>(cycle);
-    map['start_date'] = Variable<DateTime>(startDate);
-    map['valid_from'] = Variable<DateTime>(validFrom);
+    {
+      map['start_date'] = Variable<String>(
+        $ShiftPatternsTable.$converterstartDate.toSql(startDate),
+      );
+    }
+    {
+      map['valid_from'] = Variable<String>(
+        $ShiftPatternsTable.$convertervalidFrom.toSql(validFrom),
+      );
+    }
     if (!nullToAbsent || validUntil != null) {
-      map['valid_until'] = Variable<DateTime>(validUntil);
+      map['valid_until'] = Variable<String>(
+        $ShiftPatternsTable.$convertervalidUntiln.toSql(validUntil),
+      );
     }
     map['is_active'] = Variable<bool>(isActive);
     return map;
@@ -500,9 +497,9 @@ class ShiftPatternsCompanion extends UpdateCompanion<ShiftPattern> {
     Expression<String>? name,
     Expression<String>? workStyle,
     Expression<String>? cycle,
-    Expression<DateTime>? startDate,
-    Expression<DateTime>? validFrom,
-    Expression<DateTime>? validUntil,
+    Expression<String>? startDate,
+    Expression<String>? validFrom,
+    Expression<String>? validUntil,
     Expression<bool>? isActive,
   }) {
     return RawValuesInsertable({
@@ -567,13 +564,19 @@ class ShiftPatternsCompanion extends UpdateCompanion<ShiftPattern> {
       map['cycle'] = Variable<String>(cycle.value);
     }
     if (startDate.present) {
-      map['start_date'] = Variable<DateTime>(startDate.value);
+      map['start_date'] = Variable<String>(
+        $ShiftPatternsTable.$converterstartDate.toSql(startDate.value),
+      );
     }
     if (validFrom.present) {
-      map['valid_from'] = Variable<DateTime>(validFrom.value);
+      map['valid_from'] = Variable<String>(
+        $ShiftPatternsTable.$convertervalidFrom.toSql(validFrom.value),
+      );
     }
     if (validUntil.present) {
-      map['valid_until'] = Variable<DateTime>(validUntil.value);
+      map['valid_until'] = Variable<String>(
+        $ShiftPatternsTable.$convertervalidUntiln.toSql(validUntil.value),
+      );
     }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
@@ -3530,6 +3533,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final AppSettingsDao appSettingsDao = AppSettingsDao(
     this as AppDatabase,
   );
+  late final ShiftPatternsDao shiftPatternsDao = ShiftPatternsDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3620,20 +3626,23 @@ class $$ShiftPatternsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get startDate => $composableBuilder(
-    column: $table.startDate,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get startDate =>
+      $composableBuilder(
+        column: $table.startDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<DateTime> get validFrom => $composableBuilder(
-    column: $table.validFrom,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get validFrom =>
+      $composableBuilder(
+        column: $table.validFrom,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<DateTime> get validUntil => $composableBuilder(
-    column: $table.validUntil,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, String> get validUntil =>
+      $composableBuilder(
+        column: $table.validUntil,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<bool> get isActive => $composableBuilder(
     column: $table.isActive,
@@ -3680,17 +3689,17 @@ class $$ShiftPatternsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+  ColumnOrderings<String> get startDate => $composableBuilder(
     column: $table.startDate,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get validFrom => $composableBuilder(
+  ColumnOrderings<String> get validFrom => $composableBuilder(
     column: $table.validFrom,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get validUntil => $composableBuilder(
+  ColumnOrderings<String> get validUntil => $composableBuilder(
     column: $table.validUntil,
     builder: (column) => ColumnOrderings(column),
   );
@@ -3728,16 +3737,17 @@ class $$ShiftPatternsTableAnnotationComposer
   GeneratedColumn<String> get cycle =>
       $composableBuilder(column: $table.cycle, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get startDate =>
+  GeneratedColumnWithTypeConverter<DateTime, String> get startDate =>
       $composableBuilder(column: $table.startDate, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get validFrom =>
+  GeneratedColumnWithTypeConverter<DateTime, String> get validFrom =>
       $composableBuilder(column: $table.validFrom, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get validUntil => $composableBuilder(
-    column: $table.validUntil,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<DateTime?, String> get validUntil =>
+      $composableBuilder(
+        column: $table.validUntil,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
