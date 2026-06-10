@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(head -n 1 "$COMMIT_MSG_FILE")
+
+# Conventional Commits の正規表現
+# 形式: type(scope?): subject
+# type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9_-]+\))?!?: .{1,}$'
+
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+  echo "✗ ERROR: コミットメッセージが Conventional Commits 形式ではありません。"
+  echo ""
+  echo "   形式: <type>(<scope>): <subject>"
+  echo "   例:"
+  echo "     feat(calendar): add month navigation"
+  echo "     fix(revenue): correct cash sum calculation"
+  echo "     docs: update PRD"
+  echo ""
+  echo "   有効な type:"
+  echo "     feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+  echo ""
+  echo "   入力されたメッセージ:"
+  echo "     $COMMIT_MSG"
+  exit 1
+fi

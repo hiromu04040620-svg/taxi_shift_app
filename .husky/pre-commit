@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+set -e
+
+echo "▶ pre-commit checks starting..."
+
+# ========================================
+# 1. references/ 配下への変更をブロック
+# ========================================
+STAGED_REF=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^references/' | grep -v '^references/REFERENCES.md$' || true)
+if [ -n "$STAGED_REF" ]; then
+  echo "✗ ERROR: 'references/' 配下の変更はコミット禁止です:"
+  echo "$STAGED_REF" | sed 's/^/    /'
+  echo ""
+  echo "   外部参照リポジトリは読み取り専用です。"
+  echo "   REFERENCES.md のみ編集可能です。"
+  exit 1
+fi
+
+# ========================================
+# 2. Dart ファイルの format チェック
+# ========================================
+STAGED_DART=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.dart$' || true)
+if [ -n "$STAGED_DART" ]; then
+  echo "▶ dart format check..."
+  echo "$STAGED_DART" | xargs dart format --set-exit-if-changed --output=none
+  if [ $? -ne 0 ]; then
+    echo "✗ ERROR: フォーマットされていないファイルがあります。"
+    echo "   以下を実行してから再コミットしてください:"
+    echo "   dart format ."
+    exit 1
+  fi
+  echo "  ✓ format OK"
+fi
+
+# ========================================
+# 3. flutter analyze
+# ========================================
+if [ -n "$STAGED_DART" ]; then
+  echo "▶ flutter analyze..."
+  flutter analyze --no-fatal-infos
+  if [ $? -ne 0 ]; then
+    echo "✗ ERROR: 静的解析エラーがあります。"
+    exit 1
+  fi
+  echo "  ✓ analyze OK"
+fi
+
+# ========================================
+# 4. ユニットテスト（コアロジックのみ高速実行）
+# ========================================
+if [ -d "test/unit/domain" ]; then
+  echo "▶ unit tests (domain layer only)..."
+  flutter test test/unit/domain --reporter=compact
+  if [ $? -ne 0 ]; then
+    echo "✗ ERROR: ユニットテストが失敗しました。"
+    exit 1
+  fi
+  echo "  ✓ tests OK"
+fi
+
+echo "✓ pre-commit checks passed"

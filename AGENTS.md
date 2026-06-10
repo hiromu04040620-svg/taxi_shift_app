@@ -252,3 +252,13 @@ Text('タイトル', style: Theme.of(context).textTheme.titleLarge),
 - 同じ UI パターンを複数ファイルに直書き
 - `Container` の濫用（`DecoratedBox`, `Padding`, `SizedBox` で十分なケース）
 - ハードコードされた英語文字列（UI 表示文字列は `l10n` 経由）
+
+## Git フック関連の禁止事項
+
+- `git commit --no-verify` の使用禁止
+- `git push --no-verify` の使用禁止
+- `.husky/` 配下のフックスクリプトの独自改変禁止
+- `analysis_options.yaml` のルールを独断で緩和することを禁止
+- フックが失敗した場合は、原因を修正してから再コミットすること
+- husky 以外の Git hook マネージャ（Husky.js, lefthook, pre-commit 等）の
+  インストール禁止
