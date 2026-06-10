@@ -97,6 +97,42 @@ startDate からの日数分繰り返し適用される。
 | createdAt | DATETIME | |
 | updatedAt | DATETIME | |
 
+## ShiftOverrides ビジネスルール
+
+### OverrideStatus enum
+- confirmed: 確定状態（MVP ではこの値のみ使用）
+- (将来拡張余地として enum 自体は定義するが、
+  他の値は現時点では使用しない)
+
+### 同日重複の挙動
+date UNIQUE 制約により物理的に重複は作れない。
+ユーザーが同日に再度オーバーライドを作成した場合、
+Repository 層で既存レコードを upsert（更新）する。
+エラーにはしない。
+
+### シフト交換 (Swap) の概念
+2日付のシフトを相互に変更する操作。
+2レコードを同一トランザクションで作成し、
+pairedOverrideId で相互参照させる。
+
+#### createSwap のバリデーション
+- dateA == dateB の場合: ArgumentError
+- newTypeA == newTypeB: 許可（警告なし）
+- 両日 dayOff: 許可（実業務でありうる）
+- いずれかの日付に既存オーバーライドがある場合: 上書き
+
+#### deleteSwap の挙動
+ペアの両方を同一トランザクションで削除する。
+削除時、片方のレコード ID を指定すれば
+pairedOverrideId から相方を特定して両方削除する。
+
+### 単発オーバーライドの削除
+pairedOverrideId が NULL のレコードは単独削除可能。
+pairedOverrideId が非NULL のレコードを単独削除した場合、
+onDelete: KeyAction.setNull により
+相方の pairedOverrideId が自動的に NULL になる。
+（= 残った相方は単発オーバーライドに変化）
+
 ### Revenue
 
 出番ごとの売上記録。1出番＝1レコード。

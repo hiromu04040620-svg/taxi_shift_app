@@ -3,6 +3,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import 'converters/date_only_converter.dart';
 import 'daos/app_settings_dao.dart';
+import 'daos/shift_overrides_dao.dart';
 import 'daos/shift_patterns_dao.dart';
 import 'tables/app_settings.dart';
 import 'tables/presets.dart';
@@ -22,7 +23,7 @@ part 'database.g.dart';
     AppSettings,
     Presets,
   ],
-  daos: [AppSettingsDao, ShiftPatternsDao],
+  daos: [AppSettingsDao, ShiftPatternsDao, ShiftOverridesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -34,6 +35,9 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
     onCreate: (m) async {
       await m.createAll();
 

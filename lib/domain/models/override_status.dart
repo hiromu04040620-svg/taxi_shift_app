@@ -1,0 +1,1 @@
+enum OverrideStatus { confirmed, requested }

@@ -3536,6 +3536,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final ShiftPatternsDao shiftPatternsDao = ShiftPatternsDao(
     this as AppDatabase,
   );
+  late final ShiftOverridesDao shiftOverridesDao = ShiftOverridesDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
