@@ -29,6 +29,8 @@
 - **Notifications**: flutter_local_notifications
 - **Ads**: google_mobile_ads（v1で導入）
 - **Locale**: intl（日本語必須）
+- **Domain Models**: freezed（immutable データクラス生成）, json_serializable（JSON シリアライゼーション）
+  - 用途: lib/domain/models/ 配下のモデル定義のみで使用
 
 承認なしに上記以外のライブラリを追加しないこと。代替案がある場合は提案して承認を得ること。
 
