@@ -14,55 +14,49 @@ void main() {
     await db.close();
   });
 
-  test('AppSettings can be inserted and check constraint works', () async {
-    // 常に1のAppSettings等、適当に1件insertできるかどうかのsmoke test
-    final id = await db
-        .into(db.appSettings)
-        .insert(
-          AppSettingsCompanion.insert(
-            monthlyClosingDay: const Value(15),
-            ashikiriAmount: 30000,
-            commissionRate: 0.5,
-            improvementStandardEnabled: true,
-            maxMonthlyRestraintHours: const Value(262),
-            maxMonthlyShifts: const Value(13),
-            themeMode: 'system',
-            isPremium: false,
-            customLabels: '{}',
-            createdAt: Value(DateTime.now()),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
-    expect(id, 1);
+  test(
+    'AppSettings is populated on create and check constraint works',
+    () async {
+      // 初回起動時に AppSettings の id=1 レコードが初期値で作成されること
+      final settings = await db.select(db.appSettings).get();
+      expect(settings.length, 1);
 
-    final settings = await db.select(db.appSettings).get();
-    expect(settings.length, 1);
-    expect(settings.first.ashikiriAmount, 30000);
+      final initial = settings.first;
+      expect(initial.id, 1);
+      expect(initial.monthlyClosingDay, 15);
+      expect(initial.ashikiriAmount, 0);
+      expect(initial.commissionRate, 0.5);
+      expect(initial.improvementStandardEnabled, true);
+      expect(initial.maxMonthlyRestraintHours, 262);
+      expect(initial.maxMonthlyShifts, 13);
+      expect(initial.themeMode, 'system');
+      expect(initial.isPremium, false);
+      expect(initial.customLabels, '{}');
 
-    // 2行目INSERTがエラーになること
-    expect(
-      () => db
-          .into(db.appSettings)
-          .insert(
-            AppSettingsCompanion.insert(
-              id: const Value(2), // id 2 should fail CHECK (id = 1)
-              monthlyClosingDay: const Value(15),
-              ashikiriAmount: 30000,
-              commissionRate: 0.5,
-              improvementStandardEnabled: true,
-              maxMonthlyRestraintHours: const Value(262),
-              maxMonthlyShifts: const Value(13),
-              themeMode: 'system',
-              isPremium: false,
-              customLabels: '{}',
+      // 2行目INSERTがエラーになること
+      expect(
+        () => db
+            .into(db.appSettings)
+            .insert(
+              AppSettingsCompanion.insert(
+                id: const Value(2), // id 2 should fail CHECK (id = 1)
+                monthlyClosingDay: const Value(15),
+                ashikiriAmount: 30000,
+                commissionRate: 0.5,
+                improvementStandardEnabled: true,
+                maxMonthlyRestraintHours: const Value(262),
+                maxMonthlyShifts: const Value(13),
+                themeMode: 'system',
+                isPremium: false,
+                customLabels: '{}',
+              ),
             ),
-          ),
-      throwsA(isA<SqliteException>()),
-    );
-  });
+        throwsA(isA<SqliteException>()),
+      );
+    },
+  );
 
   test('updatedAt is automatically updated by trigger on update', () async {
-    // 最初の挿入
     final id = await db
         .into(db.shiftPatterns)
         .insert(
@@ -81,10 +75,8 @@ void main() {
     )..where((t) => t.id.equals(id))).getSingle();
     final firstUpdatedAt = inserted.updatedAt;
 
-    // Wait a bit to ensure timestamp changes
-    await Future<void>.delayed(const Duration(milliseconds: 1000)); // wait 1s
+    await Future<void>.delayed(const Duration(milliseconds: 1000));
 
-    // 更新
     await db
         .update(db.shiftPatterns)
         .replace(inserted.copyWith(name: 'A班(更新)'));
@@ -92,9 +84,58 @@ void main() {
     final updated = await (db.select(
       db.shiftPatterns,
     )..where((t) => t.id.equals(id))).getSingle();
-
-    // トリガーによってupdatedAtが変更されていること
     expect(updated.updatedAt.isAfter(firstUpdatedAt), true);
     expect(updated.name, 'A班(更新)');
   });
+
+  test(
+    'DateOnlyConverter saves date as YYYY-MM-DD and rejects invalid formats',
+    () async {
+      final testDate = DateTime(2023, 5, 4, 12, 34, 56);
+
+      final id = await db
+          .into(db.workSessions)
+          .insert(
+            WorkSessionsCompanion.insert(
+              date: testDate,
+              startTime: testDate,
+              endTime: testDate.add(const Duration(hours: 8)),
+              breakMinutes: 60,
+            ),
+          );
+
+      // DB内では 'YYYY-MM-DD' 形式で保持されることを raw query で確認
+      final rawResult = await db
+          .customSelect(
+            'SELECT date FROM work_sessions WHERE id = ?',
+            variables: [Variable(id)],
+          )
+          .getSingle();
+      expect(rawResult.read<String>('date'), '2023-05-04');
+
+      // 通常のselectでDateTimeとして正しく復元されること
+      final parsed = await (db.select(
+        db.workSessions,
+      )..where((t) => t.id.equals(id))).getSingle();
+      expect(parsed.date.year, 2023);
+      expect(parsed.date.month, 5);
+      expect(parsed.date.day, 4);
+
+      // 不正フォーマット文字列を直接 INSERT した場合の挙動（parse エラーになることを確認）
+      await db.customInsert(
+        'INSERT INTO work_sessions (date, start_time, end_time, break_minutes) VALUES (?, ?, ?, ?)',
+        variables: [
+          const Variable('2023/05/04'), // invalid format
+          Variable(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+          Variable(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+          const Variable(60),
+        ],
+      );
+
+      expect(
+        () async => await db.select(db.workSessions).get(),
+        throwsA(isA<FormatException>()),
+      );
+    },
+  );
 }

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import 'converters/date_only_converter.dart';
 import 'tables/app_settings.dart';
 import 'tables/presets.dart';
 import 'tables/revenues.dart';
@@ -32,6 +33,21 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
+
+      await into(appSettings).insert(
+        AppSettingsCompanion.insert(
+          monthlyClosingDay: const Value(15),
+          ashikiriAmount: 0,
+          commissionRate: 0.5,
+          improvementStandardEnabled: true,
+          maxMonthlyRestraintHours: const Value(262),
+          maxMonthlyShifts: const Value(13),
+          themeMode: 'system',
+          isPremium: false,
+          customLabels: '{}',
+        ),
+      );
+
       for (final table in [
         'shift_patterns',
         'shift_overrides',

@@ -108,6 +108,29 @@ Preset              サイクルプリセット（読み取り専用、初期デ
 | createdAt | DATETIME | |
 | updatedAt | DATETIME | |
 
+### AppSettings 初期値
+
+アプリ初回起動時、`AppDatabase.onCreate` 内で以下の値を持つ単一レコード (id = 1) を投入する。
+
+| カラム | 初期値 | 備考 |
+|---|---|---|
+| id | 1 | CHECK制約により常に1 |
+| monthlyClosingDay | 15 | 月次締め日（1-31の範囲）|
+| ashikiriAmount | 0 | 足切り金額。ユーザーが設定画面で入力するまでゼロ |
+| commissionRate | 0.5 | 歩合率。B型賃金50%を業界標準として採用 |
+| improvementStandardEnabled | true | 改善基準告示チェックの有効/無効 |
+| maxMonthlyRestraintHours | 262 | 改善基準告示の月間拘束時間上限 |
+| maxMonthlyShifts | 13 | 隔日勤務の月間出勤上限 |
+| themeMode | 'system' | 'system' / 'light' / 'dark' のいずれか |
+| isPremium | false | 課金状態 |
+| customLabels | '{}' | カスタムラベルのJSON文字列。初期は空オブジェクト |
+
+#### 設計意図
+- `ashikiriAmount` を 0 にしているのは、会社・契約により金額が大きく異なるため、明示的にユーザー入力を促す意図。UI 側で「足切り金額が 0 の場合は設定画面への誘導バナーを表示」などの実装を推奨。
+- `commissionRate` の初期値 0.5 は業界標準だが、A型・B型・AB型で異なるため、初回起動時のオンボーディング画面で確認・修正させるフローが望ましい。
+- `improvementStandardEnabled` は法令準拠の安全側初期値として true としている。
+
+
 ### Preset
 
 サイクルプリセット（初期データとしてシード）。

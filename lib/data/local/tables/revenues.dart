@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart';
+import '../converters/date_only_converter.dart';
 import 'mixins/timestamp_mixin.dart';
 
 @DataClassName('Revenue')
 class Revenues extends Table with TimestampMixin {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get date => text().unique()(); // YYYY-MM-DD
+  TextColumn get date =>
+      text().map(const DateOnlyConverter()).unique()(); // YYYY-MM-DD
   IntColumn get grossRevenue => integer()();
   IntColumn get taxExcludedRevenue => integer()();
   IntColumn get cashAmount => integer()();

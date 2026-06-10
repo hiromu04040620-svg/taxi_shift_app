@@ -642,16 +642,16 @@ class $ShiftOverridesTable extends ShiftOverrides
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
-  late final GeneratedColumn<String> date = GeneratedColumn<String>(
-    'date',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime, String> date =
+      GeneratedColumn<String>(
+        'date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      ).withConverter<DateTime>($ShiftOverridesTable.$converterdate);
   static const VerificationMeta _shiftTypeMeta = const VerificationMeta(
     'shiftType',
   );
@@ -733,14 +733,6 @@ class $ShiftOverridesTable extends ShiftOverrides
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('date')) {
-      context.handle(
-        _dateMeta,
-        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_dateMeta);
-    }
     if (data.containsKey('shift_type')) {
       context.handle(
         _shiftTypeMeta,
@@ -793,10 +785,12 @@ class $ShiftOverridesTable extends ShiftOverrides
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      date: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}date'],
-      )!,
+      date: $ShiftOverridesTable.$converterdate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}date'],
+        )!,
+      ),
       shiftType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}shift_type'],
@@ -820,13 +814,16 @@ class $ShiftOverridesTable extends ShiftOverrides
   $ShiftOverridesTable createAlias(String alias) {
     return $ShiftOverridesTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<DateTime, String> $converterdate =
+      const DateOnlyConverter();
 }
 
 class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int id;
-  final String date;
+  final DateTime date;
   final String shiftType;
   final String status;
   final String? reason;
@@ -847,7 +844,11 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<int>(id);
-    map['date'] = Variable<String>(date);
+    {
+      map['date'] = Variable<String>(
+        $ShiftOverridesTable.$converterdate.toSql(date),
+      );
+    }
     map['shift_type'] = Variable<String>(shiftType);
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || reason != null) {
@@ -885,7 +886,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<int>(json['id']),
-      date: serializer.fromJson<String>(json['date']),
+      date: serializer.fromJson<DateTime>(json['date']),
       shiftType: serializer.fromJson<String>(json['shiftType']),
       status: serializer.fromJson<String>(json['status']),
       reason: serializer.fromJson<String?>(json['reason']),
@@ -899,7 +900,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<int>(id),
-      'date': serializer.toJson<String>(date),
+      'date': serializer.toJson<DateTime>(date),
       'shiftType': serializer.toJson<String>(shiftType),
       'status': serializer.toJson<String>(status),
       'reason': serializer.toJson<String?>(reason),
@@ -911,7 +912,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? id,
-    String? date,
+    DateTime? date,
     String? shiftType,
     String? status,
     Value<String?> reason = const Value.absent(),
@@ -987,7 +988,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> id;
-  final Value<String> date;
+  final Value<DateTime> date;
   final Value<String> shiftType;
   final Value<String> status;
   final Value<String?> reason;
@@ -1006,7 +1007,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
-    required String date,
+    required DateTime date,
     required String shiftType,
     required String status,
     this.reason = const Value.absent(),
@@ -1040,7 +1041,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? id,
-    Value<String>? date,
+    Value<DateTime>? date,
     Value<String>? shiftType,
     Value<String>? status,
     Value<String?>? reason,
@@ -1071,7 +1072,9 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
       map['id'] = Variable<int>(id.value);
     }
     if (date.present) {
-      map['date'] = Variable<String>(date.value);
+      map['date'] = Variable<String>(
+        $ShiftOverridesTable.$converterdate.toSql(date.value),
+      );
     }
     if (shiftType.present) {
       map['shift_type'] = Variable<String>(shiftType.value);
@@ -1146,16 +1149,16 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
-  late final GeneratedColumn<String> date = GeneratedColumn<String>(
-    'date',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime, String> date =
+      GeneratedColumn<String>(
+        'date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      ).withConverter<DateTime>($RevenuesTable.$converterdate);
   static const VerificationMeta _grossRevenueMeta = const VerificationMeta(
     'grossRevenue',
   );
@@ -1319,14 +1322,6 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('date')) {
-      context.handle(
-        _dateMeta,
-        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_dateMeta);
-    }
     if (data.containsKey('gross_revenue')) {
       context.handle(
         _grossRevenueMeta,
@@ -1448,10 +1443,12 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      date: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}date'],
-      )!,
+      date: $RevenuesTable.$converterdate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}date'],
+        )!,
+      ),
       grossRevenue: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}gross_revenue'],
@@ -1503,13 +1500,16 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
   $RevenuesTable createAlias(String alias) {
     return $RevenuesTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<DateTime, String> $converterdate =
+      const DateOnlyConverter();
 }
 
 class Revenue extends DataClass implements Insertable<Revenue> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int id;
-  final String date;
+  final DateTime date;
   final int grossRevenue;
   final int taxExcludedRevenue;
   final int cashAmount;
@@ -1544,7 +1544,9 @@ class Revenue extends DataClass implements Insertable<Revenue> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<int>(id);
-    map['date'] = Variable<String>(date);
+    {
+      map['date'] = Variable<String>($RevenuesTable.$converterdate.toSql(date));
+    }
     map['gross_revenue'] = Variable<int>(grossRevenue);
     map['tax_excluded_revenue'] = Variable<int>(taxExcludedRevenue);
     map['cash_amount'] = Variable<int>(cashAmount);
@@ -1598,7 +1600,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<int>(json['id']),
-      date: serializer.fromJson<String>(json['date']),
+      date: serializer.fromJson<DateTime>(json['date']),
       grossRevenue: serializer.fromJson<int>(json['grossRevenue']),
       taxExcludedRevenue: serializer.fromJson<int>(json['taxExcludedRevenue']),
       cashAmount: serializer.fromJson<int>(json['cashAmount']),
@@ -1619,7 +1621,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<int>(id),
-      'date': serializer.toJson<String>(date),
+      'date': serializer.toJson<DateTime>(date),
       'grossRevenue': serializer.toJson<int>(grossRevenue),
       'taxExcludedRevenue': serializer.toJson<int>(taxExcludedRevenue),
       'cashAmount': serializer.toJson<int>(cashAmount),
@@ -1638,7 +1640,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? id,
-    String? date,
+    DateTime? date,
     int? grossRevenue,
     int? taxExcludedRevenue,
     int? cashAmount,
@@ -1770,7 +1772,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> id;
-  final Value<String> date;
+  final Value<DateTime> date;
   final Value<int> grossRevenue;
   final Value<int> taxExcludedRevenue;
   final Value<int> cashAmount;
@@ -1803,7 +1805,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
-    required String date,
+    required DateTime date,
     required int grossRevenue,
     required int taxExcludedRevenue,
     required int cashAmount,
@@ -1865,7 +1867,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? id,
-    Value<String>? date,
+    Value<DateTime>? date,
     Value<int>? grossRevenue,
     Value<int>? taxExcludedRevenue,
     Value<int>? cashAmount,
@@ -1910,7 +1912,9 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
       map['id'] = Variable<int>(id.value);
     }
     if (date.present) {
-      map['date'] = Variable<String>(date.value);
+      map['date'] = Variable<String>(
+        $RevenuesTable.$converterdate.toSql(date.value),
+      );
     }
     if (grossRevenue.present) {
       map['gross_revenue'] = Variable<int>(grossRevenue.value);
@@ -2014,16 +2018,16 @@ class $WorkSessionsTable extends WorkSessions
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
-  late final GeneratedColumn<String> date = GeneratedColumn<String>(
-    'date',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime, String> date =
+      GeneratedColumn<String>(
+        'date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      ).withConverter<DateTime>($WorkSessionsTable.$converterdate);
   static const VerificationMeta _startTimeMeta = const VerificationMeta(
     'startTime',
   );
@@ -2094,14 +2098,6 @@ class $WorkSessionsTable extends WorkSessions
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('date')) {
-      context.handle(
-        _dateMeta,
-        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_dateMeta);
-    }
     if (data.containsKey('start_time')) {
       context.handle(
         _startTimeMeta,
@@ -2150,10 +2146,12 @@ class $WorkSessionsTable extends WorkSessions
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      date: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}date'],
-      )!,
+      date: $WorkSessionsTable.$converterdate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}date'],
+        )!,
+      ),
       startTime: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}start_time'],
@@ -2173,13 +2171,16 @@ class $WorkSessionsTable extends WorkSessions
   $WorkSessionsTable createAlias(String alias) {
     return $WorkSessionsTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<DateTime, String> $converterdate =
+      const DateOnlyConverter();
 }
 
 class WorkSession extends DataClass implements Insertable<WorkSession> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int id;
-  final String date;
+  final DateTime date;
   final DateTime startTime;
   final DateTime endTime;
   final int breakMinutes;
@@ -2198,7 +2199,11 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<int>(id);
-    map['date'] = Variable<String>(date);
+    {
+      map['date'] = Variable<String>(
+        $WorkSessionsTable.$converterdate.toSql(date),
+      );
+    }
     map['start_time'] = Variable<DateTime>(startTime);
     map['end_time'] = Variable<DateTime>(endTime);
     map['break_minutes'] = Variable<int>(breakMinutes);
@@ -2226,7 +2231,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<int>(json['id']),
-      date: serializer.fromJson<String>(json['date']),
+      date: serializer.fromJson<DateTime>(json['date']),
       startTime: serializer.fromJson<DateTime>(json['startTime']),
       endTime: serializer.fromJson<DateTime>(json['endTime']),
       breakMinutes: serializer.fromJson<int>(json['breakMinutes']),
@@ -2239,7 +2244,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<int>(id),
-      'date': serializer.toJson<String>(date),
+      'date': serializer.toJson<DateTime>(date),
       'startTime': serializer.toJson<DateTime>(startTime),
       'endTime': serializer.toJson<DateTime>(endTime),
       'breakMinutes': serializer.toJson<int>(breakMinutes),
@@ -2250,7 +2255,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? id,
-    String? date,
+    DateTime? date,
     DateTime? startTime,
     DateTime? endTime,
     int? breakMinutes,
@@ -2318,7 +2323,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> id;
-  final Value<String> date;
+  final Value<DateTime> date;
   final Value<DateTime> startTime;
   final Value<DateTime> endTime;
   final Value<int> breakMinutes;
@@ -2335,7 +2340,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
-    required String date,
+    required DateTime date,
     required DateTime startTime,
     required DateTime endTime,
     required int breakMinutes,
@@ -2367,7 +2372,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? id,
-    Value<String>? date,
+    Value<DateTime>? date,
     Value<DateTime>? startTime,
     Value<DateTime>? endTime,
     Value<int>? breakMinutes,
@@ -2396,7 +2401,9 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
       map['id'] = Variable<int>(id.value);
     }
     if (date.present) {
-      map['date'] = Variable<String>(date.value);
+      map['date'] = Variable<String>(
+        $WorkSessionsTable.$converterdate.toSql(date.value),
+      );
     }
     if (startTime.present) {
       map['start_time'] = Variable<DateTime>(startTime.value);
@@ -3840,7 +3847,7 @@ typedef $$ShiftOverridesTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      required String date,
+      required DateTime date,
       required String shiftType,
       required String status,
       Value<String?> reason,
@@ -3851,7 +3858,7 @@ typedef $$ShiftOverridesTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      Value<String> date,
+      Value<DateTime> date,
       Value<String> shiftType,
       Value<String> status,
       Value<String?> reason,
@@ -3913,10 +3920,11 @@ class $$ShiftOverridesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get date =>
+      $composableBuilder(
+        column: $table.date,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<String> get shiftType => $composableBuilder(
     column: $table.shiftType,
@@ -4043,7 +4051,7 @@ class $$ShiftOverridesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get date =>
+  GeneratedColumnWithTypeConverter<DateTime, String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
   GeneratedColumn<String> get shiftType =>
@@ -4112,7 +4120,7 @@ class $$ShiftOverridesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                Value<String> date = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
                 Value<String> shiftType = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> reason = const Value.absent(),
@@ -4132,7 +4140,7 @@ class $$ShiftOverridesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                required String date,
+                required DateTime date,
                 required String shiftType,
                 required String status,
                 Value<String?> reason = const Value.absent(),
@@ -4220,7 +4228,7 @@ typedef $$RevenuesTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      required String date,
+      required DateTime date,
       required int grossRevenue,
       required int taxExcludedRevenue,
       required int cashAmount,
@@ -4238,7 +4246,7 @@ typedef $$RevenuesTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      Value<String> date,
+      Value<DateTime> date,
       Value<int> grossRevenue,
       Value<int> taxExcludedRevenue,
       Value<int> cashAmount,
@@ -4276,10 +4284,11 @@ class $$RevenuesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get date =>
+      $composableBuilder(
+        column: $table.date,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<int> get grossRevenue => $composableBuilder(
     column: $table.grossRevenue,
@@ -4440,7 +4449,7 @@ class $$RevenuesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get date =>
+  GeneratedColumnWithTypeConverter<DateTime, String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
   GeneratedColumn<int> get grossRevenue => $composableBuilder(
@@ -4526,7 +4535,7 @@ class $$RevenuesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                Value<String> date = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
                 Value<int> grossRevenue = const Value.absent(),
                 Value<int> taxExcludedRevenue = const Value.absent(),
                 Value<int> cashAmount = const Value.absent(),
@@ -4560,7 +4569,7 @@ class $$RevenuesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                required String date,
+                required DateTime date,
                 required int grossRevenue,
                 required int taxExcludedRevenue,
                 required int cashAmount,
@@ -4616,7 +4625,7 @@ typedef $$WorkSessionsTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      required String date,
+      required DateTime date,
       required DateTime startTime,
       required DateTime endTime,
       required int breakMinutes,
@@ -4626,7 +4635,7 @@ typedef $$WorkSessionsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      Value<String> date,
+      Value<DateTime> date,
       Value<DateTime> startTime,
       Value<DateTime> endTime,
       Value<int> breakMinutes,
@@ -4656,10 +4665,11 @@ class $$WorkSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get date =>
+      $composableBuilder(
+        column: $table.date,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<DateTime> get startTime => $composableBuilder(
     column: $table.startTime,
@@ -4740,7 +4750,7 @@ class $$WorkSessionsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get date =>
+  GeneratedColumnWithTypeConverter<DateTime, String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
   GeneratedColumn<DateTime> get startTime =>
@@ -4789,7 +4799,7 @@ class $$WorkSessionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                Value<String> date = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
                 Value<DateTime> startTime = const Value.absent(),
                 Value<DateTime> endTime = const Value.absent(),
                 Value<int> breakMinutes = const Value.absent(),
@@ -4807,7 +4817,7 @@ class $$WorkSessionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                required String date,
+                required DateTime date,
                 required DateTime startTime,
                 required DateTime endTime,
                 required int breakMinutes,
