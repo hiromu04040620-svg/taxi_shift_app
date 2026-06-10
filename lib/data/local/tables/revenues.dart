@@ -4,7 +4,7 @@ import 'mixins/timestamp_mixin.dart';
 @DataClassName('Revenue')
 class Revenues extends Table with TimestampMixin {
   IntColumn get id => integer().autoIncrement()();
-  DateTimeColumn get date => dateTime().unique()(); // DATE UNIQUE
+  TextColumn get date => text().unique()(); // YYYY-MM-DD
   IntColumn get grossRevenue => integer()();
   IntColumn get taxExcludedRevenue => integer()();
   IntColumn get cashAmount => integer()();

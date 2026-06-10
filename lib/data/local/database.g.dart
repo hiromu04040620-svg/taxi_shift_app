@@ -644,11 +644,11 @@ class $ShiftOverridesTable extends ShiftOverrides
   );
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
-  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
     'date',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
@@ -692,7 +692,7 @@ class $ShiftOverridesTable extends ShiftOverrides
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES shift_overrides (id)',
+      'REFERENCES shift_overrides (id) ON DELETE SET NULL',
     ),
   );
   @override
@@ -794,7 +794,7 @@ class $ShiftOverridesTable extends ShiftOverrides
         data['${effectivePrefix}id'],
       )!,
       date: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}date'],
       )!,
       shiftType: attachedDatabase.typeMapping.read(
@@ -826,7 +826,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int id;
-  final DateTime date;
+  final String date;
   final String shiftType;
   final String status;
   final String? reason;
@@ -847,7 +847,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<int>(id);
-    map['date'] = Variable<DateTime>(date);
+    map['date'] = Variable<String>(date);
     map['shift_type'] = Variable<String>(shiftType);
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || reason != null) {
@@ -885,7 +885,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<int>(json['id']),
-      date: serializer.fromJson<DateTime>(json['date']),
+      date: serializer.fromJson<String>(json['date']),
       shiftType: serializer.fromJson<String>(json['shiftType']),
       status: serializer.fromJson<String>(json['status']),
       reason: serializer.fromJson<String?>(json['reason']),
@@ -899,7 +899,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<int>(id),
-      'date': serializer.toJson<DateTime>(date),
+      'date': serializer.toJson<String>(date),
       'shiftType': serializer.toJson<String>(shiftType),
       'status': serializer.toJson<String>(status),
       'reason': serializer.toJson<String?>(reason),
@@ -911,7 +911,7 @@ class ShiftOverride extends DataClass implements Insertable<ShiftOverride> {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? id,
-    DateTime? date,
+    String? date,
     String? shiftType,
     String? status,
     Value<String?> reason = const Value.absent(),
@@ -987,7 +987,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> id;
-  final Value<DateTime> date;
+  final Value<String> date;
   final Value<String> shiftType;
   final Value<String> status;
   final Value<String?> reason;
@@ -1006,7 +1006,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
-    required DateTime date,
+    required String date,
     required String shiftType,
     required String status,
     this.reason = const Value.absent(),
@@ -1018,7 +1018,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? id,
-    Expression<DateTime>? date,
+    Expression<String>? date,
     Expression<String>? shiftType,
     Expression<String>? status,
     Expression<String>? reason,
@@ -1040,7 +1040,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? id,
-    Value<DateTime>? date,
+    Value<String>? date,
     Value<String>? shiftType,
     Value<String>? status,
     Value<String?>? reason,
@@ -1071,7 +1071,7 @@ class ShiftOverridesCompanion extends UpdateCompanion<ShiftOverride> {
       map['id'] = Variable<int>(id.value);
     }
     if (date.present) {
-      map['date'] = Variable<DateTime>(date.value);
+      map['date'] = Variable<String>(date.value);
     }
     if (shiftType.present) {
       map['shift_type'] = Variable<String>(shiftType.value);
@@ -1148,11 +1148,11 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
   );
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
-  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
     'date',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
@@ -1449,7 +1449,7 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
         data['${effectivePrefix}id'],
       )!,
       date: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}date'],
       )!,
       grossRevenue: attachedDatabase.typeMapping.read(
@@ -1509,7 +1509,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int id;
-  final DateTime date;
+  final String date;
   final int grossRevenue;
   final int taxExcludedRevenue;
   final int cashAmount;
@@ -1544,7 +1544,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<int>(id);
-    map['date'] = Variable<DateTime>(date);
+    map['date'] = Variable<String>(date);
     map['gross_revenue'] = Variable<int>(grossRevenue);
     map['tax_excluded_revenue'] = Variable<int>(taxExcludedRevenue);
     map['cash_amount'] = Variable<int>(cashAmount);
@@ -1598,7 +1598,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<int>(json['id']),
-      date: serializer.fromJson<DateTime>(json['date']),
+      date: serializer.fromJson<String>(json['date']),
       grossRevenue: serializer.fromJson<int>(json['grossRevenue']),
       taxExcludedRevenue: serializer.fromJson<int>(json['taxExcludedRevenue']),
       cashAmount: serializer.fromJson<int>(json['cashAmount']),
@@ -1619,7 +1619,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<int>(id),
-      'date': serializer.toJson<DateTime>(date),
+      'date': serializer.toJson<String>(date),
       'grossRevenue': serializer.toJson<int>(grossRevenue),
       'taxExcludedRevenue': serializer.toJson<int>(taxExcludedRevenue),
       'cashAmount': serializer.toJson<int>(cashAmount),
@@ -1638,7 +1638,7 @@ class Revenue extends DataClass implements Insertable<Revenue> {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? id,
-    DateTime? date,
+    String? date,
     int? grossRevenue,
     int? taxExcludedRevenue,
     int? cashAmount,
@@ -1770,7 +1770,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> id;
-  final Value<DateTime> date;
+  final Value<String> date;
   final Value<int> grossRevenue;
   final Value<int> taxExcludedRevenue;
   final Value<int> cashAmount;
@@ -1803,7 +1803,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
-    required DateTime date,
+    required String date,
     required int grossRevenue,
     required int taxExcludedRevenue,
     required int cashAmount,
@@ -1828,7 +1828,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? id,
-    Expression<DateTime>? date,
+    Expression<String>? date,
     Expression<int>? grossRevenue,
     Expression<int>? taxExcludedRevenue,
     Expression<int>? cashAmount,
@@ -1865,7 +1865,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? id,
-    Value<DateTime>? date,
+    Value<String>? date,
     Value<int>? grossRevenue,
     Value<int>? taxExcludedRevenue,
     Value<int>? cashAmount,
@@ -1910,7 +1910,7 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
       map['id'] = Variable<int>(id.value);
     }
     if (date.present) {
-      map['date'] = Variable<DateTime>(date.value);
+      map['date'] = Variable<String>(date.value);
     }
     if (grossRevenue.present) {
       map['gross_revenue'] = Variable<int>(grossRevenue.value);
@@ -2016,11 +2016,11 @@ class $WorkSessionsTable extends WorkSessions
   );
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
-  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
     'date',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
@@ -2151,7 +2151,7 @@ class $WorkSessionsTable extends WorkSessions
         data['${effectivePrefix}id'],
       )!,
       date: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}date'],
       )!,
       startTime: attachedDatabase.typeMapping.read(
@@ -2179,7 +2179,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int id;
-  final DateTime date;
+  final String date;
   final DateTime startTime;
   final DateTime endTime;
   final int breakMinutes;
@@ -2198,7 +2198,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<int>(id);
-    map['date'] = Variable<DateTime>(date);
+    map['date'] = Variable<String>(date);
     map['start_time'] = Variable<DateTime>(startTime);
     map['end_time'] = Variable<DateTime>(endTime);
     map['break_minutes'] = Variable<int>(breakMinutes);
@@ -2226,7 +2226,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<int>(json['id']),
-      date: serializer.fromJson<DateTime>(json['date']),
+      date: serializer.fromJson<String>(json['date']),
       startTime: serializer.fromJson<DateTime>(json['startTime']),
       endTime: serializer.fromJson<DateTime>(json['endTime']),
       breakMinutes: serializer.fromJson<int>(json['breakMinutes']),
@@ -2239,7 +2239,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<int>(id),
-      'date': serializer.toJson<DateTime>(date),
+      'date': serializer.toJson<String>(date),
       'startTime': serializer.toJson<DateTime>(startTime),
       'endTime': serializer.toJson<DateTime>(endTime),
       'breakMinutes': serializer.toJson<int>(breakMinutes),
@@ -2250,7 +2250,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? id,
-    DateTime? date,
+    String? date,
     DateTime? startTime,
     DateTime? endTime,
     int? breakMinutes,
@@ -2318,7 +2318,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> id;
-  final Value<DateTime> date;
+  final Value<String> date;
   final Value<DateTime> startTime;
   final Value<DateTime> endTime;
   final Value<int> breakMinutes;
@@ -2335,7 +2335,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
-    required DateTime date,
+    required String date,
     required DateTime startTime,
     required DateTime endTime,
     required int breakMinutes,
@@ -2347,7 +2347,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? id,
-    Expression<DateTime>? date,
+    Expression<String>? date,
     Expression<DateTime>? startTime,
     Expression<DateTime>? endTime,
     Expression<int>? breakMinutes,
@@ -2367,7 +2367,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? id,
-    Value<DateTime>? date,
+    Value<String>? date,
     Value<DateTime>? startTime,
     Value<DateTime>? endTime,
     Value<int>? breakMinutes,
@@ -2396,7 +2396,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
       map['id'] = Variable<int>(id.value);
     }
     if (date.present) {
-      map['date'] = Variable<DateTime>(date.value);
+      map['date'] = Variable<String>(date.value);
     }
     if (startTime.present) {
       map['start_time'] = Variable<DateTime>(startTime.value);
@@ -2461,12 +2461,9 @@ class $AppSettingsTable extends AppSettings
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _monthlyClosingDayMeta = const VerificationMeta(
     'monthlyClosingDay',
@@ -3219,8 +3216,23 @@ class $PresetsTable extends Presets with TableInfo<$PresetsTable, Preset> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _isBuiltinMeta = const VerificationMeta(
+    'isBuiltin',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name, workStyle, cycle];
+  late final GeneratedColumn<bool> isBuiltin = GeneratedColumn<bool>(
+    'is_builtin',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_builtin" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, workStyle, cycle, isBuiltin];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3260,6 +3272,12 @@ class $PresetsTable extends Presets with TableInfo<$PresetsTable, Preset> {
     } else if (isInserting) {
       context.missing(_cycleMeta);
     }
+    if (data.containsKey('is_builtin')) {
+      context.handle(
+        _isBuiltinMeta,
+        isBuiltin.isAcceptableOrUnknown(data['is_builtin']!, _isBuiltinMeta),
+      );
+    }
     return context;
   }
 
@@ -3285,6 +3303,10 @@ class $PresetsTable extends Presets with TableInfo<$PresetsTable, Preset> {
         DriftSqlType.string,
         data['${effectivePrefix}cycle'],
       )!,
+      isBuiltin: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_builtin'],
+      )!,
     );
   }
 
@@ -3299,11 +3321,13 @@ class Preset extends DataClass implements Insertable<Preset> {
   final String name;
   final String workStyle;
   final String cycle;
+  final bool isBuiltin;
   const Preset({
     required this.id,
     required this.name,
     required this.workStyle,
     required this.cycle,
+    required this.isBuiltin,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3312,6 +3336,7 @@ class Preset extends DataClass implements Insertable<Preset> {
     map['name'] = Variable<String>(name);
     map['work_style'] = Variable<String>(workStyle);
     map['cycle'] = Variable<String>(cycle);
+    map['is_builtin'] = Variable<bool>(isBuiltin);
     return map;
   }
 
@@ -3321,6 +3346,7 @@ class Preset extends DataClass implements Insertable<Preset> {
       name: Value(name),
       workStyle: Value(workStyle),
       cycle: Value(cycle),
+      isBuiltin: Value(isBuiltin),
     );
   }
 
@@ -3334,6 +3360,7 @@ class Preset extends DataClass implements Insertable<Preset> {
       name: serializer.fromJson<String>(json['name']),
       workStyle: serializer.fromJson<String>(json['workStyle']),
       cycle: serializer.fromJson<String>(json['cycle']),
+      isBuiltin: serializer.fromJson<bool>(json['isBuiltin']),
     );
   }
   @override
@@ -3344,22 +3371,30 @@ class Preset extends DataClass implements Insertable<Preset> {
       'name': serializer.toJson<String>(name),
       'workStyle': serializer.toJson<String>(workStyle),
       'cycle': serializer.toJson<String>(cycle),
+      'isBuiltin': serializer.toJson<bool>(isBuiltin),
     };
   }
 
-  Preset copyWith({int? id, String? name, String? workStyle, String? cycle}) =>
-      Preset(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        workStyle: workStyle ?? this.workStyle,
-        cycle: cycle ?? this.cycle,
-      );
+  Preset copyWith({
+    int? id,
+    String? name,
+    String? workStyle,
+    String? cycle,
+    bool? isBuiltin,
+  }) => Preset(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    workStyle: workStyle ?? this.workStyle,
+    cycle: cycle ?? this.cycle,
+    isBuiltin: isBuiltin ?? this.isBuiltin,
+  );
   Preset copyWithCompanion(PresetsCompanion data) {
     return Preset(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       workStyle: data.workStyle.present ? data.workStyle.value : this.workStyle,
       cycle: data.cycle.present ? data.cycle.value : this.cycle,
+      isBuiltin: data.isBuiltin.present ? data.isBuiltin.value : this.isBuiltin,
     );
   }
 
@@ -3369,13 +3404,14 @@ class Preset extends DataClass implements Insertable<Preset> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('workStyle: $workStyle, ')
-          ..write('cycle: $cycle')
+          ..write('cycle: $cycle, ')
+          ..write('isBuiltin: $isBuiltin')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, workStyle, cycle);
+  int get hashCode => Object.hash(id, name, workStyle, cycle, isBuiltin);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3383,7 +3419,8 @@ class Preset extends DataClass implements Insertable<Preset> {
           other.id == this.id &&
           other.name == this.name &&
           other.workStyle == this.workStyle &&
-          other.cycle == this.cycle);
+          other.cycle == this.cycle &&
+          other.isBuiltin == this.isBuiltin);
 }
 
 class PresetsCompanion extends UpdateCompanion<Preset> {
@@ -3391,17 +3428,20 @@ class PresetsCompanion extends UpdateCompanion<Preset> {
   final Value<String> name;
   final Value<String> workStyle;
   final Value<String> cycle;
+  final Value<bool> isBuiltin;
   const PresetsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.workStyle = const Value.absent(),
     this.cycle = const Value.absent(),
+    this.isBuiltin = const Value.absent(),
   });
   PresetsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     required String workStyle,
     required String cycle,
+    this.isBuiltin = const Value.absent(),
   }) : name = Value(name),
        workStyle = Value(workStyle),
        cycle = Value(cycle);
@@ -3410,12 +3450,14 @@ class PresetsCompanion extends UpdateCompanion<Preset> {
     Expression<String>? name,
     Expression<String>? workStyle,
     Expression<String>? cycle,
+    Expression<bool>? isBuiltin,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (workStyle != null) 'work_style': workStyle,
       if (cycle != null) 'cycle': cycle,
+      if (isBuiltin != null) 'is_builtin': isBuiltin,
     });
   }
 
@@ -3424,12 +3466,14 @@ class PresetsCompanion extends UpdateCompanion<Preset> {
     Value<String>? name,
     Value<String>? workStyle,
     Value<String>? cycle,
+    Value<bool>? isBuiltin,
   }) {
     return PresetsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       workStyle: workStyle ?? this.workStyle,
       cycle: cycle ?? this.cycle,
+      isBuiltin: isBuiltin ?? this.isBuiltin,
     );
   }
 
@@ -3448,6 +3492,9 @@ class PresetsCompanion extends UpdateCompanion<Preset> {
     if (cycle.present) {
       map['cycle'] = Variable<String>(cycle.value);
     }
+    if (isBuiltin.present) {
+      map['is_builtin'] = Variable<bool>(isBuiltin.value);
+    }
     return map;
   }
 
@@ -3457,7 +3504,8 @@ class PresetsCompanion extends UpdateCompanion<Preset> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('workStyle: $workStyle, ')
-          ..write('cycle: $cycle')
+          ..write('cycle: $cycle, ')
+          ..write('isBuiltin: $isBuiltin')
           ..write(')'))
         .toString();
   }
@@ -3484,6 +3532,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     appSettings,
     presets,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'shift_overrides',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('shift_overrides', kind: UpdateKind.update)],
+    ),
+  ]);
 }
 
 typedef $$ShiftPatternsTableCreateCompanionBuilder =
@@ -3782,7 +3840,7 @@ typedef $$ShiftOverridesTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      required DateTime date,
+      required String date,
       required String shiftType,
       required String status,
       Value<String?> reason,
@@ -3793,7 +3851,7 @@ typedef $$ShiftOverridesTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      Value<DateTime> date,
+      Value<String> date,
       Value<String> shiftType,
       Value<String> status,
       Value<String?> reason,
@@ -3855,7 +3913,7 @@ class $$ShiftOverridesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get date => $composableBuilder(
+  ColumnFilters<String> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnFilters(column),
   );
@@ -3923,7 +3981,7 @@ class $$ShiftOverridesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get date => $composableBuilder(
+  ColumnOrderings<String> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnOrderings(column),
   );
@@ -3985,7 +4043,7 @@ class $$ShiftOverridesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get date =>
+  GeneratedColumn<String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
   GeneratedColumn<String> get shiftType =>
@@ -4054,7 +4112,7 @@ class $$ShiftOverridesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                Value<DateTime> date = const Value.absent(),
+                Value<String> date = const Value.absent(),
                 Value<String> shiftType = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> reason = const Value.absent(),
@@ -4074,7 +4132,7 @@ class $$ShiftOverridesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                required DateTime date,
+                required String date,
                 required String shiftType,
                 required String status,
                 Value<String?> reason = const Value.absent(),
@@ -4162,7 +4220,7 @@ typedef $$RevenuesTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      required DateTime date,
+      required String date,
       required int grossRevenue,
       required int taxExcludedRevenue,
       required int cashAmount,
@@ -4180,7 +4238,7 @@ typedef $$RevenuesTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      Value<DateTime> date,
+      Value<String> date,
       Value<int> grossRevenue,
       Value<int> taxExcludedRevenue,
       Value<int> cashAmount,
@@ -4218,7 +4276,7 @@ class $$RevenuesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get date => $composableBuilder(
+  ColumnFilters<String> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnFilters(column),
   );
@@ -4303,7 +4361,7 @@ class $$RevenuesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get date => $composableBuilder(
+  ColumnOrderings<String> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnOrderings(column),
   );
@@ -4382,7 +4440,7 @@ class $$RevenuesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get date =>
+  GeneratedColumn<String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
   GeneratedColumn<int> get grossRevenue => $composableBuilder(
@@ -4468,7 +4526,7 @@ class $$RevenuesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                Value<DateTime> date = const Value.absent(),
+                Value<String> date = const Value.absent(),
                 Value<int> grossRevenue = const Value.absent(),
                 Value<int> taxExcludedRevenue = const Value.absent(),
                 Value<int> cashAmount = const Value.absent(),
@@ -4502,7 +4560,7 @@ class $$RevenuesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                required DateTime date,
+                required String date,
                 required int grossRevenue,
                 required int taxExcludedRevenue,
                 required int cashAmount,
@@ -4558,7 +4616,7 @@ typedef $$WorkSessionsTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      required DateTime date,
+      required String date,
       required DateTime startTime,
       required DateTime endTime,
       required int breakMinutes,
@@ -4568,7 +4626,7 @@ typedef $$WorkSessionsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> id,
-      Value<DateTime> date,
+      Value<String> date,
       Value<DateTime> startTime,
       Value<DateTime> endTime,
       Value<int> breakMinutes,
@@ -4598,7 +4656,7 @@ class $$WorkSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get date => $composableBuilder(
+  ColumnFilters<String> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnFilters(column),
   );
@@ -4643,7 +4701,7 @@ class $$WorkSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get date => $composableBuilder(
+  ColumnOrderings<String> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnOrderings(column),
   );
@@ -4682,7 +4740,7 @@ class $$WorkSessionsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get date =>
+  GeneratedColumn<String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
   GeneratedColumn<DateTime> get startTime =>
@@ -4731,7 +4789,7 @@ class $$WorkSessionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                Value<DateTime> date = const Value.absent(),
+                Value<String> date = const Value.absent(),
                 Value<DateTime> startTime = const Value.absent(),
                 Value<DateTime> endTime = const Value.absent(),
                 Value<int> breakMinutes = const Value.absent(),
@@ -4749,7 +4807,7 @@ class $$WorkSessionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
-                required DateTime date,
+                required String date,
                 required DateTime startTime,
                 required DateTime endTime,
                 required int breakMinutes,
@@ -5134,6 +5192,7 @@ typedef $$PresetsTableCreateCompanionBuilder =
       required String name,
       required String workStyle,
       required String cycle,
+      Value<bool> isBuiltin,
     });
 typedef $$PresetsTableUpdateCompanionBuilder =
     PresetsCompanion Function({
@@ -5141,6 +5200,7 @@ typedef $$PresetsTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> workStyle,
       Value<String> cycle,
+      Value<bool> isBuiltin,
     });
 
 class $$PresetsTableFilterComposer
@@ -5169,6 +5229,11 @@ class $$PresetsTableFilterComposer
 
   ColumnFilters<String> get cycle => $composableBuilder(
     column: $table.cycle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isBuiltin => $composableBuilder(
+    column: $table.isBuiltin,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5201,6 +5266,11 @@ class $$PresetsTableOrderingComposer
     column: $table.cycle,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isBuiltin => $composableBuilder(
+    column: $table.isBuiltin,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PresetsTableAnnotationComposer
@@ -5223,6 +5293,9 @@ class $$PresetsTableAnnotationComposer
 
   GeneratedColumn<String> get cycle =>
       $composableBuilder(column: $table.cycle, builder: (column) => column);
+
+  GeneratedColumn<bool> get isBuiltin =>
+      $composableBuilder(column: $table.isBuiltin, builder: (column) => column);
 }
 
 class $$PresetsTableTableManager
@@ -5257,11 +5330,13 @@ class $$PresetsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> workStyle = const Value.absent(),
                 Value<String> cycle = const Value.absent(),
+                Value<bool> isBuiltin = const Value.absent(),
               }) => PresetsCompanion(
                 id: id,
                 name: name,
                 workStyle: workStyle,
                 cycle: cycle,
+                isBuiltin: isBuiltin,
               ),
           createCompanionCallback:
               ({
@@ -5269,11 +5344,13 @@ class $$PresetsTableTableManager
                 required String name,
                 required String workStyle,
                 required String cycle,
+                Value<bool> isBuiltin = const Value.absent(),
               }) => PresetsCompanion.insert(
                 id: id,
                 name: name,
                 workStyle: workStyle,
                 cycle: cycle,
+                isBuiltin: isBuiltin,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

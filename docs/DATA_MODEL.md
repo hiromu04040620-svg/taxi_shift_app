@@ -39,7 +39,7 @@ Preset              サイクルプリセット（読み取り専用、初期デ
 | カラム | 型 | 説明 |
 |---|---|---|
 | id | INTEGER PK | |
-| date | DATE UNIQUE | 対象日 |
+| date | TEXT UNIQUE | 対象日 (YYYY-MM-DD) |
 | shiftType | TEXT | `workDay` / `afterDuty` / `dayOff` / `extraWork` / `optionalDayOff` / `paidLeave` |
 | status | TEXT | `confirmed`（確定） / `requested`（希望中） |
 | reason | TEXT NULL | 変更理由メモ |
@@ -54,7 +54,7 @@ Preset              サイクルプリセット（読み取り専用、初期デ
 | カラム | 型 | 説明 |
 |---|---|---|
 | id | INTEGER PK | |
-| date | DATE UNIQUE | 出番日（出庫日基準） |
+| date | TEXT UNIQUE | 出番日（出庫日基準）(YYYY-MM-DD) |
 | grossRevenue | INTEGER | 総営収（円） |
 | taxExcludedRevenue | INTEGER | 税抜営収（円） |
 | cashAmount | INTEGER | 現金売上 |
@@ -78,7 +78,7 @@ Preset              サイクルプリセット（読み取り専用、初期デ
 | カラム | 型 | 説明 |
 |---|---|---|
 | id | INTEGER PK | |
-| date | DATE UNIQUE | 出番日（出庫日基準） |
+| date | TEXT UNIQUE | 出番日（出庫日基準）(YYYY-MM-DD) |
 | startTime | DATETIME | 出庫（拘束開始） |
 | endTime | DATETIME | 帰庫（拘束終了） |
 | breakMinutes | INTEGER | 休憩合計（分） |
@@ -111,10 +111,11 @@ Preset              サイクルプリセット（読み取り専用、初期デ
 ### Preset
 
 サイクルプリセット（初期データとしてシード）。
+- isBuiltin: bool, NOT NULL, default false（組み込みプリセットを示すフラグ。trueの場合UIで編集・削除不可）
 
-| id | name | workStyle | cycle |
-|---|---|---|---|
-| 1 | 隔日 2出番2休（標準） | alternateDay | `[workDay, afterDuty, workDay, afterDuty, dayOff, dayOff, dayOff]` |
+| id | name | workStyle | cycle | isBuiltin |
+|---|---|---|---|---|
+| 1 | 隔日 2出番2休（標準） | alternateDay | `[workDay, afterDuty, workDay, afterDuty, dayOff, dayOff, dayOff]` | true |
 | 2 | 隔日 ダブ公サイクル | alternateDay | `[workDay, afterDuty, workDay, afterDuty, workDay, afterDuty, dayOff, dayOff, dayOff]` |
 | 3 | 隔日 12出番標準 | alternateDay | `[workDay, afterDuty, workDay, afterDuty, workDay, afterDuty, dayOff]` |
 | 4 | 日勤週休2日 | dayShift | `[workDay, workDay, workDay, workDay, workDay, dayOff, dayOff]` |

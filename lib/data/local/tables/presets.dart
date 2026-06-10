@@ -6,4 +6,5 @@ class Presets extends Table {
   TextColumn get name => text()();
   TextColumn get workStyle => text()();
   TextColumn get cycle => text()(); // JSON
+  BoolColumn get isBuiltin => boolean().withDefault(const Constant(false))();
 }
