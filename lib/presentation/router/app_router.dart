@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../application/providers/onboarding_provider.dart';
-import '../screens/calendar/calendar_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
+import '../screens/shell/main_shell.dart';
 
 part 'app_router.g.dart';
 
@@ -37,7 +37,7 @@ GoRouter appRouter(Ref ref) {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          return const CalendarScreen();
+          return const MainShell();
         },
       ),
       GoRoute(
