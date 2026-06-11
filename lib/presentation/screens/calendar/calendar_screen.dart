@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../application/providers/theme_provider.dart';
 import 'widgets/day_detail_panel.dart';
 import 'widgets/shift_calendar.dart';
 import 'widgets/shift_legend.dart';
@@ -48,11 +48,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeControllerProvider);
-    final isDark =
-        themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system &&
-            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
     final textTheme = Theme.of(context).textTheme;
 
     final headerTitle = DateFormat('yyyy年 M月', 'ja_JP').format(_focusedMonth);
@@ -62,13 +57,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         title: Text(headerTitle, style: textTheme.titleLarge),
         actions: [
           IconButton(
-            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            icon: const Icon(Icons.settings),
             onPressed: () {
-              ref
-                  .read(themeModeControllerProvider.notifier)
-                  .setMode(isDark ? ThemeMode.light : ThemeMode.dark);
+              context.push('/settings');
             },
-            tooltip: 'テーマ切替',
+            tooltip: '設定',
           ),
         ],
       ),

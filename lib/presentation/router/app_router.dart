@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../application/providers/onboarding_provider.dart';
 import '../screens/onboarding/onboarding_screen.dart';
+import '../screens/settings/settings_screen.dart';
 import '../screens/shell/main_shell.dart';
 
 part 'app_router.g.dart';
@@ -43,6 +44,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

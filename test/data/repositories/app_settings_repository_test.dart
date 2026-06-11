@@ -3,7 +3,8 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taxi_shift_app/data/local/database.dart';
-import 'package:taxi_shift_app/data/repositories/app_settings_repository.dart';
+import 'package:taxi_shift_app/data/repositories/app_settings_repository_impl.dart';
+import 'package:taxi_shift_app/domain/repositories/app_settings_repository.dart';
 
 void main() {
   late AppDatabase db;
@@ -11,7 +12,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory()));
-    repository = AppSettingsRepositoryImpl(db.appSettingsDao);
+    repository = AppSettingsRepositoryImpl(db);
   });
 
   tearDown(() async {
@@ -19,18 +20,27 @@ void main() {
   });
 
   group('AppSettingsRepository validations', () {
-    test('updateClosingDay throws ArgumentError on boundaries', () async {
-      expect(() => repository.updateClosingDay(0), throwsArgumentError);
-      expect(() => repository.updateClosingDay(32), throwsArgumentError);
+    test(
+      'updateMonthlyClosingDay throws ArgumentError on boundaries',
+      () async {
+        expect(
+          () => repository.updateMonthlyClosingDay(0),
+          throwsArgumentError,
+        );
+        expect(
+          () => repository.updateMonthlyClosingDay(32),
+          throwsArgumentError,
+        );
 
-      await repository.updateClosingDay(1);
-      final settingsMin = await repository.get();
-      expect(settingsMin.monthlyClosingDay, 1);
+        await repository.updateMonthlyClosingDay(1);
+        final settingsMin = await repository.get();
+        expect(settingsMin.monthlyClosingDay, 1);
 
-      await repository.updateClosingDay(31);
-      final settingsMax = await repository.get();
-      expect(settingsMax.monthlyClosingDay, 31);
-    });
+        await repository.updateMonthlyClosingDay(31);
+        final settingsMax = await repository.get();
+        expect(settingsMax.monthlyClosingDay, 31);
+      },
+    );
 
     test('updateAshikiriAmount throws ArgumentError on negative', () async {
       expect(() => repository.updateAshikiriAmount(-1), throwsArgumentError);

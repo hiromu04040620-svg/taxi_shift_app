@@ -247,4 +247,4 @@ final class AppSettingsRepositoryProvider
 }
 
 String _$appSettingsRepositoryHash() =>
-    r'020829a9a3a9772aacd5787b6d03321b7a73eaf2';
+    r'346af10ecf4080dbae41e7a3bb8ee09d47f648ed';
