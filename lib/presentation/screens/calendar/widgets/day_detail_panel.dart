@@ -10,6 +10,7 @@ import '../../../providers/revenue_queries_provider.dart';
 import '../../../providers/shift_queries_provider.dart';
 import '../../../providers/work_session_queries_provider.dart';
 import '../../../utils/shift_type_display.dart';
+import 'shift_override_sheet.dart';
 
 class DayDetailPanel extends ConsumerWidget {
   const DayDetailPanel({super.key, required this.date});
@@ -119,12 +120,28 @@ class DayDetailPanel extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
 
           // アクションボタン
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              FilledButton.tonal(onPressed: null, child: Text('シフト変更')),
-              FilledButton.tonal(onPressed: null, child: Text('実績入力')),
-              FilledButton.tonal(onPressed: null, child: Text('売上入力')),
+              FilledButton.icon(
+                onPressed: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(AppRadius.lg),
+                      ),
+                    ),
+                    builder: (context) => ShiftOverrideSheet(date: date),
+                  );
+                },
+                icon: const Icon(Icons.edit_calendar),
+                label: const Text('シフト変更'),
+              ),
+              const FilledButton.tonal(onPressed: null, child: Text('実績入力')),
+              const FilledButton.tonal(onPressed: null, child: Text('売上入力')),
             ],
           ),
         ],
