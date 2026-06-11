@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../screens/home_screen.dart';
+import '../screens/calendar/calendar_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -10,7 +10,7 @@ GoRouter appRouter(Ref ref) {
   return GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/', builder: (context, state) => const CalendarScreen()),
     ],
   );
 }
