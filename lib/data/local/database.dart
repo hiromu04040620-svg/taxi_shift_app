@@ -3,6 +3,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import 'converters/date_only_converter.dart';
 import 'daos/app_settings_dao.dart';
+import 'daos/revenues_dao.dart';
 import 'daos/shift_overrides_dao.dart';
 import 'daos/shift_patterns_dao.dart';
 import 'daos/work_sessions_dao.dart';
@@ -24,7 +25,13 @@ part 'database.g.dart';
     AppSettings,
     Presets,
   ],
-  daos: [AppSettingsDao, ShiftPatternsDao, ShiftOverridesDao, WorkSessionsDao],
+  daos: [
+    AppSettingsDao,
+    ShiftPatternsDao,
+    ShiftOverridesDao,
+    WorkSessionsDao,
+    RevenuesDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());

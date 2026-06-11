@@ -161,16 +161,17 @@ onDelete: KeyAction.setNull により
 |---|---|---|
 | id | INTEGER PK | |
 | date | TEXT UNIQUE | 出番日（出庫日基準）(YYYY-MM-DD) |
+| workSessionId | INTEGER NULL | WorkSessionのID |
 | grossRevenue | INTEGER | 総営収（円） |
 | taxExcludedRevenue | INTEGER | 税抜営収（円） |
 | cashAmount | INTEGER | 現金売上 |
-| cashlessAmount | INTEGER | キャッシュレス売上（カード/IC/QR合算） |
-| otherAmount | INTEGER | その他（チケット等） |
+| cardAmount | INTEGER | クレジット売上 |
+| appAmount | INTEGER | 配車アプリ売上 |
+| ticketAmount | INTEGER | チケット・クーポン売上 |
 | totalDistance | REAL | 総走行距離（km） |
 | occupiedDistance | REAL | 実車距離（km） |
 | ridesCount | INTEGER | 乗車回数 |
 | fuelAmount | INTEGER NULL | 燃料補給額 |
-| photoPath | TEXT NULL | 添付写真のパス |
 | note | TEXT NULL | メモ |
 | createdAt | DATETIME | |
 | updatedAt | DATETIME | |
