@@ -55,7 +55,7 @@ void main() {
   });
 
   test('実車距離が総走行距離を超えてエラー', () async {
-    final invalid = validRevenue.copyWith(occupiedDistance: 300.0);
+    final invalid = validRevenue.copyWith(occupiedDistance: 300);
     expect(() => repository.create(invalid), throwsArgumentError);
   });
 
