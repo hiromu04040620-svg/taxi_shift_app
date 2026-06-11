@@ -110,8 +110,12 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(findTextFieldByLabel('総営収'), '55000');
-    await tester.tap(find.text('保存'));
+    FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
+
+    await tester.tap(find.text('保存'));
+    await tester.pump(); // SnackBarが表示されるためpumpAndSettleの代わりにpumpを使用
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(SnackBar), findsOneWidget);
     expect(
@@ -165,6 +169,7 @@ void main() {
     await tester.pump();
 
     await tester.enterText(findTextFieldByLabel('総営収'), '60000');
+    FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('保存'));
