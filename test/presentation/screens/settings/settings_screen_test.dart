@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:taxi_shift_app/application/providers/repositories_provider.dart';
 import 'package:taxi_shift_app/domain/models/app_settings.dart';
 import 'package:taxi_shift_app/domain/repositories/app_settings_repository.dart';
-import 'package:taxi_shift_app/application/providers/repositories_provider.dart';
 import 'package:taxi_shift_app/presentation/screens/settings/settings_screen.dart';
 
 class FakeAppSettingsRepository extends AppSettingsRepository {
