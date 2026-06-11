@@ -5,6 +5,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../application/providers/app_settings_controller.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../providers/app_settings_queries_provider.dart';
+import 'widgets/number_input_dialog.dart';
+import 'widgets/percentage_input_dialog.dart';
 import 'widgets/setting_tile.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -86,59 +88,6 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _showNumberInputDialog({
-    required BuildContext context,
-    required String title,
-    required int initialValue,
-    required String suffixText,
-    required ValueChanged<int> onSaved,
-  }) async {
-    final controller = TextEditingController(text: initialValue.toString());
-    final formKey = GlobalKey<FormState>();
-
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Form(
-            key: formKey,
-            child: TextFormField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(suffixText: suffixText),
-              validator: (value) {
-                if (value == null || value.isEmpty) return '値を入力してください';
-                final parsed = int.tryParse(value);
-                if (parsed == null) return '数値を入力してください';
-                if (parsed < 0) return '0以上の数値を入力してください';
-                return null;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('キャンセル'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  Navigator.of(context).pop(int.parse(controller.text));
-                }
-              },
-              child: const Text('保存'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result != null) {
-      onSaved(result);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appSettingsAsync = ref.watch(appSettingsProvider);
@@ -204,19 +153,19 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: '${settings.monthlyClosingDay}日',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
-                  _showNumberInputDialog(
+                  showNumberInputDialog(
                     context: context,
                     title: '月締め日',
                     initialValue: settings.monthlyClosingDay,
                     suffixText: '日',
-                    onSaved: (val) {
+                    validator: (val) {
                       if (val >= 1 && val <= 31) {
-                        actions.updateMonthlyClosingDay(val);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('1から31の間で入力してください')),
-                        );
+                        return null;
                       }
+                      return '1から31の間で入力してください';
+                    },
+                    onSaved: (val) {
+                      actions.updateMonthlyClosingDay(val);
                     },
                   );
                 },
@@ -226,7 +175,7 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: '${settings.maxMonthlyShifts}出番',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
-                  _showNumberInputDialog(
+                  showNumberInputDialog(
                     context: context,
                     title: '月最大出番数',
                     initialValue: settings.maxMonthlyShifts,
@@ -240,7 +189,7 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: '${settings.maxMonthlyRestraintHours}時間',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
-                  _showNumberInputDialog(
+                  showNumberInputDialog(
                     context: context,
                     title: '月最大拘束時間',
                     initialValue: settings.maxMonthlyRestraintHours,
@@ -258,7 +207,7 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: '${settings.ashikiriAmount}円',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
-                  _showNumberInputDialog(
+                  showNumberInputDialog(
                     context: context,
                     title: '足切り額（税抜）',
                     initialValue: settings.ashikiriAmount,
@@ -272,20 +221,11 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: '${(settings.commissionRate * 100).toInt()}%',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
-                  _showNumberInputDialog(
+                  showPercentageInputDialog(
                     context: context,
-                    title: '歩合率 (%)',
-                    initialValue: (settings.commissionRate * 100).toInt(),
-                    suffixText: '%',
-                    onSaved: (val) {
-                      if (val >= 0 && val <= 100) {
-                        actions.updateCommissionRate(val / 100.0);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('0から100の間で入力してください')),
-                        );
-                      }
-                    },
+                    title: '歩合率',
+                    initialRate: settings.commissionRate,
+                    onSaved: (val) => actions.updateCommissionRate(val),
                   );
                 },
               ),
