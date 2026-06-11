@@ -10,7 +10,9 @@ import '../../../providers/revenue_queries_provider.dart';
 import '../../../providers/shift_queries_provider.dart';
 import '../../../providers/work_session_queries_provider.dart';
 import '../../../utils/shift_type_display.dart';
+import 'revenue_sheet.dart';
 import 'shift_override_sheet.dart';
+import 'work_session_sheet.dart';
 
 class DayDetailPanel extends ConsumerWidget {
   const DayDetailPanel({super.key, required this.date});
@@ -140,8 +142,38 @@ class DayDetailPanel extends ConsumerWidget {
                 icon: const Icon(Icons.edit_calendar),
                 label: const Text('シフト変更'),
               ),
-              const FilledButton.tonal(onPressed: null, child: Text('実績入力')),
-              const FilledButton.tonal(onPressed: null, child: Text('売上入力')),
+              FilledButton.tonal(
+                onPressed: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(AppRadius.lg),
+                      ),
+                    ),
+                    builder: (context) => WorkSessionSheet(date: date),
+                  );
+                },
+                child: const Text('実績入力'),
+              ),
+              FilledButton.tonal(
+                onPressed: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(AppRadius.lg),
+                      ),
+                    ),
+                    builder: (context) => RevenueSheet(date: date),
+                  );
+                },
+                child: const Text('売上入力'),
+              ),
             ],
           ),
         ],
