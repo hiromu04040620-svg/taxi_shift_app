@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../application/providers/app_settings_controller.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../providers/app_settings_queries_provider.dart';
+import 'widgets/setting_tile.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -151,9 +152,9 @@ class SettingsScreen extends ConsumerWidget {
           return ListView(
             children: [
               _buildSectionHeader(context, '外観'),
-              ListTile(
-                title: const Text('テーマ'),
-                subtitle: Text(_themeModeString(settings.themeMode)),
+              SettingTile(
+                title: 'テーマ',
+                subtitle: _themeModeString(settings.themeMode),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                   size: AppIconSize.sm,
@@ -198,9 +199,9 @@ class SettingsScreen extends ConsumerWidget {
                   actions.updateImprovementStandardEnabled(val);
                 },
               ),
-              ListTile(
-                title: const Text('月締め日'),
-                subtitle: Text('${settings.monthlyClosingDay}日'),
+              SettingTile(
+                title: '月締め日',
+                subtitle: '${settings.monthlyClosingDay}日',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
                   _showNumberInputDialog(
@@ -220,9 +221,9 @@ class SettingsScreen extends ConsumerWidget {
                   );
                 },
               ),
-              ListTile(
-                title: const Text('月最大出番数'),
-                subtitle: Text('${settings.maxMonthlyShifts}出番'),
+              SettingTile(
+                title: '月最大出番数',
+                subtitle: '${settings.maxMonthlyShifts}出番',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
                   _showNumberInputDialog(
@@ -234,9 +235,9 @@ class SettingsScreen extends ConsumerWidget {
                   );
                 },
               ),
-              ListTile(
-                title: const Text('月最大拘束時間'),
-                subtitle: Text('${settings.maxMonthlyRestraintHours}時間'),
+              SettingTile(
+                title: '月最大拘束時間',
+                subtitle: '${settings.maxMonthlyRestraintHours}時間',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
                   _showNumberInputDialog(
@@ -252,9 +253,9 @@ class SettingsScreen extends ConsumerWidget {
 
               const Divider(),
               _buildSectionHeader(context, '売上'),
-              ListTile(
-                title: const Text('足切り額（税抜）'),
-                subtitle: Text('${settings.ashikiriAmount}円'),
+              SettingTile(
+                title: '足切り額（税抜）',
+                subtitle: '${settings.ashikiriAmount}円',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
                   _showNumberInputDialog(
@@ -266,9 +267,9 @@ class SettingsScreen extends ConsumerWidget {
                   );
                 },
               ),
-              ListTile(
-                title: const Text('歩合率'),
-                subtitle: Text('${(settings.commissionRate * 100).toInt()}%'),
+              SettingTile(
+                title: '歩合率',
+                subtitle: '${(settings.commissionRate * 100).toInt()}%',
                 trailing: const Icon(Icons.edit, size: AppIconSize.sm),
                 onTap: () {
                   _showNumberInputDialog(
@@ -291,9 +292,9 @@ class SettingsScreen extends ConsumerWidget {
 
               const Divider(),
               _buildSectionHeader(context, 'シフトパターン'),
-              ListTile(
-                title: const Text('シフトパターンを編集'),
-                subtitle: const Text('基本の勤務サイクルを変更します'),
+              SettingTile(
+                title: 'シフトパターンを編集',
+                subtitle: '基本の勤務サイクルを変更します',
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                   size: AppIconSize.sm,
@@ -307,9 +308,9 @@ class SettingsScreen extends ConsumerWidget {
 
               const Divider(),
               _buildSectionHeader(context, 'データ管理'),
-              ListTile(
-                title: const Text('データのエクスポート'),
-                subtitle: const Text('CSV形式で出力します'),
+              SettingTile(
+                title: 'データのエクスポート',
+                subtitle: 'CSV形式で出力します',
                 leading: const Icon(Icons.download),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -317,11 +318,9 @@ class SettingsScreen extends ConsumerWidget {
                   );
                 },
               ),
-              ListTile(
-                title: const Text(
-                  'すべてのデータを削除',
-                  style: TextStyle(color: Colors.red),
-                ),
+              SettingTile(
+                title: 'すべてのデータを削除',
+                titleColor: Colors.red,
                 leading: const Icon(Icons.delete_forever, color: Colors.red),
                 onTap: () => _showDeleteConfirmDialog(context, ref),
               ),
@@ -337,14 +336,11 @@ class SettingsScreen extends ConsumerWidget {
                       ? 'v$version ($buildNumber)'
                       : '取得中...';
 
-                  return ListTile(
-                    title: const Text('バージョン'),
-                    subtitle: Text(versionStr),
-                  );
+                  return SettingTile(title: 'バージョン', subtitle: versionStr);
                 },
               ),
-              ListTile(
-                title: const Text('ライセンス'),
+              SettingTile(
+                title: 'ライセンス',
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                   size: AppIconSize.sm,
