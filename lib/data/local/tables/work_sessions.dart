@@ -10,4 +10,5 @@ class WorkSessions extends Table with TimestampMixin {
   DateTimeColumn get startTime => dateTime()();
   DateTimeColumn get endTime => dateTime()();
   IntColumn get breakMinutes => integer()();
+  TextColumn get note => text().nullable()();
 }

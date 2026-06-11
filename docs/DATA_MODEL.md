@@ -188,6 +188,7 @@ onDelete: KeyAction.setNull により
 | startTime | DATETIME | 出庫（拘束開始） |
 | endTime | DATETIME | 帰庫（拘束終了） |
 | breakMinutes | INTEGER | 休憩合計（分） |
+| note | TEXT | メモ（オプショナル） |
 | createdAt | DATETIME | |
 | updatedAt | DATETIME | |
 
