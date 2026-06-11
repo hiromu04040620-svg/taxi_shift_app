@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'settings_actions_provider.dart';
+part of 'app_settings_controller.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,28 +9,28 @@ part of 'settings_actions_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(SettingsActions)
-final settingsActionsProvider = SettingsActionsProvider._();
+@ProviderFor(AppSettingsController)
+final appSettingsControllerProvider = AppSettingsControllerProvider._();
 
-final class SettingsActionsProvider
-    extends $NotifierProvider<SettingsActions, void> {
-  SettingsActionsProvider._()
+final class AppSettingsControllerProvider
+    extends $NotifierProvider<AppSettingsController, void> {
+  AppSettingsControllerProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'settingsActionsProvider',
+        name: r'appSettingsControllerProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$settingsActionsHash();
+  String debugGetCreateSourceHash() => _$appSettingsControllerHash();
 
   @$internal
   @override
-  SettingsActions create() => SettingsActions();
+  AppSettingsController create() => AppSettingsController();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(void value) {
@@ -41,9 +41,10 @@ final class SettingsActionsProvider
   }
 }
 
-String _$settingsActionsHash() => r'006949ffd69bfaae4f2986d350ea112667884350';
+String _$appSettingsControllerHash() =>
+    r'1b71ff95af0394c933ca0e1d7404fcc83319a133';
 
-abstract class _$SettingsActions extends $Notifier<void> {
+abstract class _$AppSettingsController extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override
