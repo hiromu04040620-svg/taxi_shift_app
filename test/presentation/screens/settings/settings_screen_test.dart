@@ -1,11 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:taxi_shift_app/application/providers/repositories_provider.dart';
+import 'package:taxi_shift_app/data/repositories/shift_patterns_repository.dart';
 import 'package:taxi_shift_app/domain/models/app_settings.dart';
+import 'package:taxi_shift_app/domain/models/shift_pattern.dart';
 import 'package:taxi_shift_app/domain/repositories/app_settings_repository.dart';
 import 'package:taxi_shift_app/presentation/screens/settings/settings_screen.dart';
+
+class FakeShiftPatternsRepository implements ShiftPatternsRepository {
+  @override
+  Future<List<ShiftPattern>> getActive() async => [];
+
+  @override
+  Future<List<ShiftPattern>> getAll() async => [];
+
+  @override
+  Future<ShiftPattern?> getActiveAt(DateTime date) async => null;
+
+  @override
+  Future<List<ShiftPattern>> getActiveBetween(
+    DateTime from,
+    DateTime to,
+  ) async => [];
+
+  @override
+  Future<ShiftPattern> create(ShiftPattern pattern) async => pattern;
+
+  @override
+  Future<void> update(ShiftPattern pattern) async {}
+
+  @override
+  Future<void> deactivate(int id) async {}
+
+  @override
+  Stream<List<ShiftPattern>> watchActive() => Stream.value([]);
+}
 
 class FakeAppSettingsRepository extends AppSettingsRepository {
   static const defaultSettings = AppSettings(
@@ -52,6 +83,10 @@ class FakeAppSettingsRepository extends AppSettingsRepository {
 void main() {
   late FakeAppSettingsRepository fakeSettingsRepo;
 
+  setUpAll(() async {
+    await initializeDateFormatting('ja_JP');
+  });
+
   setUp(() {
     fakeSettingsRepo = FakeAppSettingsRepository();
   });
@@ -60,6 +95,9 @@ void main() {
     return ProviderScope(
       overrides: [
         appSettingsRepositoryProvider.overrideWithValue(fakeSettingsRepo),
+        shiftPatternsRepositoryProvider.overrideWithValue(
+          FakeShiftPatternsRepository(),
+        ),
       ],
       child: const MaterialApp(home: SettingsScreen()),
     );
@@ -116,7 +154,8 @@ void main() {
 
     // 削除ボタンをタップ
     await tester.tap(deleteButton);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     // 第1段階の確認ダイアログが表示されるか
     expect(find.text('全データ削除'), findsOneWidget);
