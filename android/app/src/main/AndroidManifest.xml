@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="taxi_shift_app"
+        android:label="TaxiShift"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
