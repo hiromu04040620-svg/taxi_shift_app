@@ -7,7 +7,9 @@
 - カテゴリ案: 仕事効率化
 - 価格: 無料
 - アプリ内課金: 広告非表示（買い切り 300円予定）
+- IAP Product ID: `remove_ads`
 - Bundle ID: `com.sasame.takushiftokun`
+- プライバシーポリシー URL: `https://sasamehiromu.github.io/taxi_shift_app/PRIVACY_POLICY.html`
 
 ## プロモーション文
 
@@ -70,6 +72,5 @@ Google AdMob:
 
 - サポート URL
 - プライバシーポリシー公開 URL
-- IAP Product ID
 - 年齢制限回答
 - Android / Google Play を同時リリースするか

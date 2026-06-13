@@ -3,16 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/design_tokens.dart';
 import '../../providers/app_settings_queries_provider.dart';
+import '../../providers/premium_purchase_provider.dart';
 
 class PaywallSheet extends ConsumerWidget {
   const PaywallSheet({super.key, this.openedAfterSave = false});
 
   final bool openedAfterSave;
 
-  void _showPurchasePreparingMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('購入処理は App Store Connect の商品登録後に接続します')),
-    );
+  void _showMessage(BuildContext context, String? message) {
+    if (message == null || message.isEmpty) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildBenefit(
@@ -53,6 +55,7 @@ class PaywallSheet extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isPremium = ref.watch(appSettingsProvider).value?.isPremium ?? false;
+    final purchase = ref.watch(premiumPurchaseControllerProvider);
     final title = isPremium ? 'プレミアム有効' : '広告を非表示';
     final lead = openedAfterSave
         ? '記録が保存できました。よく使う画面の広告を非表示にできます。'
@@ -111,7 +114,7 @@ class PaywallSheet extends ConsumerWidget {
                       Text('買い切り予定', style: textTheme.labelLarge),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        '300円',
+                        purchase.priceLabel,
                         style: textTheme.headlineMedium?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                         ),
@@ -150,16 +153,42 @@ class PaywallSheet extends ConsumerWidget {
                 )
               else ...[
                 FilledButton.icon(
-                  onPressed: () => _showPurchasePreparingMessage(context),
+                  onPressed: purchase.canPurchase
+                      ? () async {
+                          final message = await purchase.buyRemoveAds();
+                          if (context.mounted) {
+                            _showMessage(context, message);
+                          }
+                        }
+                      : null,
                   icon: const Icon(Icons.shopping_bag),
-                  label: const Text('購入して広告を非表示'),
+                  label: purchase.isLoading
+                      ? const Text('確認中...')
+                      : const Text('購入して広告を非表示'),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 OutlinedButton.icon(
-                  onPressed: () => _showPurchasePreparingMessage(context),
+                  onPressed: purchase.isLoading
+                      ? null
+                      : () async {
+                          final message = await purchase.restorePurchases();
+                          if (context.mounted) {
+                            _showMessage(context, message);
+                          }
+                        },
                   icon: const Icon(Icons.restore),
                   label: const Text('購入を復元'),
                 ),
+                if (purchase.message != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    purchase.message!,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text('あとで'),

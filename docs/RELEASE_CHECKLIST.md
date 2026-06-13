@@ -12,7 +12,7 @@
 
 - [ ] `docs/PRIVACY_POLICY.md` の問い合わせ先を確定
 - [ ] GitHub Pages 等で公開
-- [ ] 公開 URL を控える
+- [ ] 公開 URL `https://sasamehiromu.github.io/taxi_shift_app/PRIVACY_POLICY.html` にアクセスできることを確認
 - [ ] 設定画面の「プライバシーポリシー」導線に URL を接続
 - [ ] App Store Connect の App Privacy に URL を登録
 
@@ -26,8 +26,7 @@
 ## 4. 広告非表示 IAP
 
 - [ ] App Store Connect で Non-Consumable 商品を作成
-- [ ] Product ID を確定
-- [ ] `in_app_purchase` 導入を承認
+- [ ] Product ID は `remove_ads` にする
 - [ ] 購入、復元、失敗、キャンセルの処理を実装
 - [ ] 購入成功時に `isPremium=true` へ更新
 - [ ] StoreKit / Sandbox で購入・復元を実機確認
