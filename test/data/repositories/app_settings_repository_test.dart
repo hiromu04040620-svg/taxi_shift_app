@@ -83,5 +83,18 @@ void main() {
       // To update it we bypass repository mapping (or add updateCustomLabels)
       // Since repository doesn't have updateCustomLabels yet, we check initial state.
     });
+
+    test('premium status can be updated', () async {
+      var settings = await repository.get();
+      expect(settings.isPremium, false);
+
+      await repository.updatePremiumStatus(true);
+      settings = await repository.get();
+      expect(settings.isPremium, true);
+
+      await repository.updatePremiumStatus(false);
+      settings = await repository.get();
+      expect(settings.isPremium, false);
+    });
   });
 }

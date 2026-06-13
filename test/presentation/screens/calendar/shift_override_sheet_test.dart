@@ -9,6 +9,7 @@ import 'package:taxi_shift_app/application/providers/repositories_provider.dart'
 import 'package:taxi_shift_app/data/local/database.dart' hide ShiftOverride;
 import 'package:taxi_shift_app/domain/models/shift_override.dart';
 import 'package:taxi_shift_app/domain/models/shift_type.dart';
+import 'package:taxi_shift_app/presentation/screens/calendar/widgets/shift_change_confirm_dialog.dart';
 import 'package:taxi_shift_app/presentation/screens/calendar/widgets/shift_override_sheet.dart';
 
 void main() {
@@ -57,6 +58,10 @@ void main() {
 
     // Save
     await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ShiftChangeConfirmDialog), findsOneWidget);
+    await tester.tap(find.text('この日だけ変更'));
     await tester.pumpAndSettle();
 
     // Verify DB
@@ -109,6 +114,10 @@ void main() {
 
     // Save
     await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ShiftChangeConfirmDialog), findsOneWidget);
+    await tester.tap(find.text('この日だけ変更'));
     await tester.pumpAndSettle();
 
     // Verify DB updated

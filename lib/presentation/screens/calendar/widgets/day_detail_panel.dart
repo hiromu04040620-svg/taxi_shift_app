@@ -5,11 +5,14 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../domain/models/improvement_warning.dart';
 import '../../../../domain/models/shift_type.dart';
+import '../../../providers/app_settings_queries_provider.dart';
 import '../../../providers/improvement_warnings_provider.dart';
+import '../../../providers/paywall_prompt_provider.dart';
 import '../../../providers/revenue_queries_provider.dart';
 import '../../../providers/shift_queries_provider.dart';
 import '../../../providers/work_session_queries_provider.dart';
 import '../../../utils/shift_type_display.dart';
+import '../../paywall/paywall_sheet.dart';
 import 'daily_entry_sheet.dart';
 import 'shift_override_sheet.dart';
 
@@ -17,6 +20,27 @@ class DayDetailPanel extends ConsumerWidget {
   const DayDetailPanel({super.key, required this.date});
 
   final DateTime date;
+
+  Future<void> _maybeShowPaywallAfterSave(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings?.isPremium == true) return;
+    final promptSession = ref.read(paywallPromptSessionProvider);
+    if (promptSession.hasShown) return;
+
+    promptSession.markShown();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+      ),
+      builder: (context) => const PaywallSheet(openedAfterSave: true),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -149,8 +173,8 @@ class DayDetailPanel extends ConsumerWidget {
                 label: const Text('シフト変更'),
               ),
               FilledButton.tonal(
-                onPressed: () {
-                  showModalBottomSheet<void>(
+                onPressed: () async {
+                  final saved = await showModalBottomSheet<bool>(
                     context: context,
                     isScrollControlled: true,
                     useSafeArea: true,
@@ -161,6 +185,9 @@ class DayDetailPanel extends ConsumerWidget {
                     ),
                     builder: (context) => DailyEntrySheet(date: date),
                   );
+                  if (saved == true && context.mounted) {
+                    await _maybeShowPaywallAfterSave(context, ref);
+                  }
                 },
                 child: const Text('記録する'),
               ),

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -324,5 +324,63 @@ void main() {
     final revenueRepo = container.read(revenuesRepositoryProvider);
     final revenues = await revenueRepo.findByMonth(2026, 6);
     expect(revenues.length, 1);
+  });
+
+  testWidgets('キーボード表示中は保存フッターが入力欄の高さ分だけ持ち上がる', (WidgetTester tester) async {
+    final container = ProviderContainer(
+      overrides: [appDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+    final testDate = DateTime(2026, 6, 16);
+    const keyboardInset = 320.0;
+    addTearDown(tester.view.resetViewInsets);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(body: DailyEntrySheet(date: testDate)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final saveButton = find.widgetWithText(FilledButton, '保存');
+    final defaultSaveButtonBottom = tester.getBottomLeft(saveButton).dy;
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: keyboardInset);
+    await tester.pumpAndSettle();
+
+    final liftedSaveButtonBottom = tester.getBottomLeft(saveButton).dy;
+    expect(liftedSaveButtonBottom, lessThan(defaultSaveButtonBottom));
+  });
+
+  testWidgets('入力欄の外側をタップするとキーボードが閉じる', (WidgetTester tester) async {
+    final controller = TextEditingController();
+    final focusNode = FocusNode();
+    addTearDown(controller.dispose);
+    addTearDown(focusNode.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Focus(
+            focusNode: focusNode,
+            child: LabeledTextField(label: '総営収（任意）', controller: controller),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    focusNode.requestFocus();
+    await tester.pumpAndSettle();
+    expect(focusNode.hasFocus, true);
+
+    final editableText = tester.widget<EditableText>(find.byType(EditableText));
+    editableText.onTapOutside?.call(const PointerDownEvent());
+    await tester.pumpAndSettle();
+
+    expect(focusNode.hasFocus, false);
   });
 }

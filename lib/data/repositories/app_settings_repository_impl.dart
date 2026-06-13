@@ -83,6 +83,13 @@ class AppSettingsRepositoryImpl implements AppSettingsRepository {
   }
 
   @override
+  Future<void> updatePremiumStatus(bool isPremium) async {
+    await _db.appSettingsDao.updateSettings(
+      db.AppSettingsCompanion(isPremium: drift.Value(isPremium)),
+    );
+  }
+
+  @override
   Future<void> deleteAllUserData() async {
     await _db.transaction(() async {
       await _db.delete(_db.shiftOverrides).go();

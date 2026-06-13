@@ -160,6 +160,21 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
     return dt;
   }
 
+  void _unfocusWhenTappedOutside(PointerDownEvent event) {
+    final currentFocus = FocusManager.instance.primaryFocus;
+    final focusContext = currentFocus?.context;
+    final renderObject = focusContext?.findRenderObject();
+
+    if (renderObject is RenderBox) {
+      final localPosition = renderObject.globalToLocal(event.position);
+      if (renderObject.size.contains(localPosition)) {
+        return;
+      }
+    }
+
+    currentFocus?.unfocus();
+  }
+
   void _selectTime(bool isStart) async {
     final initialTime = isStart ? _startTime : _endTime;
     final picked = await showTimePicker(
@@ -184,6 +199,8 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
   }
 
   Future<void> _save() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+
     if (!_isWorkSessionEnabled && !_isRevenueEnabled) {
       ScaffoldMessenger.of(
         context,
@@ -342,7 +359,7 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
       }
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
@@ -587,114 +604,126 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
       builder: (context, scrollController) {
         return Scaffold(
           backgroundColor: Colors.transparent,
-          body: Material(
-            color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.lg),
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: AppSpacing.md),
-                Center(
-                  child: Container(
-                    width: 32,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.4,
-                      ),
-                      borderRadius: BorderRadius.circular(AppRadius.full),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  dateLabel,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                const Divider(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    padding: EdgeInsets.only(
-                      left: AppSpacing.md,
-                      right: AppSpacing.md,
-                      top: AppSpacing.sm,
-                      bottom:
-                          MediaQuery.viewInsetsOf(context).bottom +
-                          AppSpacing.xxl,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // WorkSession Section Header
-                        SwitchListTile(
-                          title: Text(
-                            '勤務記録を入力する',
-                            style: textTheme.titleMedium,
-                          ),
-                          value: _isWorkSessionEnabled,
-                          onChanged: (val) {
-                            setState(() {
-                              _isWorkSessionEnabled = val;
-                            });
-                          },
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        _buildWorkSessionSection(textTheme),
-
-                        const Divider(),
-
-                        // Revenue Section Header
-                        SwitchListTile(
-                          title: Text(
-                            '売上記録を入力する',
-                            style: textTheme.titleMedium,
-                          ),
-                          value: _isRevenueEnabled,
-                          onChanged: (val) {
-                            setState(() {
-                              _isRevenueEnabled = val;
-                            });
-                          },
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        _buildRevenueSection(textTheme),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          bottomNavigationBar: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
+          body: Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: _unfocusWhenTappedOutside,
+            child: Material(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadius.lg),
+              ),
+              child: Column(
                 children: [
-                  TextButton(
-                    onPressed: _isLoading ? null : () => Navigator.pop(context),
-                    child: const Text('キャンセル'),
+                  const SizedBox(height: AppSpacing.md),
+                  Center(
+                    child: Container(
+                      width: 32,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.4,
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                      ),
+                    ),
                   ),
-                  const Spacer(),
-                  FilledButton(
-                    onPressed: _isLoading ? null : _save,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    dateLabel,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  const Divider(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.only(
+                        left: AppSpacing.md,
+                        right: AppSpacing.md,
+                        top: AppSpacing.sm,
+                        bottom: AppSpacing.xxl,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // WorkSession Section Header
+                          SwitchListTile(
+                            title: Text(
+                              '勤務記録を入力する',
+                              style: textTheme.titleMedium,
                             ),
-                          )
-                        : const Text('保存'),
+                            value: _isWorkSessionEnabled,
+                            onChanged: (val) {
+                              setState(() {
+                                _isWorkSessionEnabled = val;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          _buildWorkSessionSection(textTheme),
+
+                          const Divider(),
+
+                          // Revenue Section Header
+                          SwitchListTile(
+                            title: Text(
+                              '売上記録を入力する',
+                              style: textTheme.titleMedium,
+                            ),
+                            value: _isRevenueEnabled,
+                            onChanged: (val) {
+                              setState(() {
+                                _isRevenueEnabled = val;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          _buildRevenueSection(textTheme),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          bottomNavigationBar: AnimatedPadding(
+            duration: AppAnimation.fast,
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    TextButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () => Navigator.pop(context),
+                      child: const Text('キャンセル'),
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: _isLoading ? null : _save,
+                      child: _isLoading
+                          ? SizedBox.square(
+                              dimension: AppIconSize.sm,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.onPrimary,
+                              ),
+                            )
+                          : const Text('保存'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

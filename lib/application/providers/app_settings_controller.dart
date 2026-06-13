@@ -45,6 +45,11 @@ class AppSettingsController extends _$AppSettingsController {
     await repo.updateMaxMonthlyRestraintHours(hours);
   }
 
+  Future<void> updatePremiumStatus(bool isPremium) async {
+    final repo = ref.read(appSettingsRepositoryProvider);
+    await repo.updatePremiumStatus(isPremium);
+  }
+
   Future<void> deleteAllUserData() async {
     final repo = ref.read(appSettingsRepositoryProvider);
     await repo.deleteAllUserData();

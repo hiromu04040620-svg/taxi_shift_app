@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/ads_provider.dart';
 import '../../providers/selected_month_provider.dart';
 import '../../utils/year_month_picker.dart';
+import '../../widgets/banner_ad_widget.dart';
 import 'tabs/compliance_tab.dart';
 import 'tabs/revenue_tab.dart';
 import 'tabs/work_tab.dart';
@@ -50,6 +52,9 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
         body: const TabBarView(
           children: [RevenueTab(), WorkTab(), ComplianceTab()],
         ),
+        bottomNavigationBar: ref.watch(adsEnabledProvider)
+            ? const BannerAdWidget()
+            : null,
       ),
     );
   }

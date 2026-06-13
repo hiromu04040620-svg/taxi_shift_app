@@ -77,6 +77,8 @@ class FakeAppSettingsRepository extends AppSettingsRepository {
   @override
   Future<void> updateMaxMonthlyRestraintHours(int hours) async {}
   @override
+  Future<void> updatePremiumStatus(bool isPremium) async {}
+  @override
   Future<void> deleteAllUserData() async {}
 }
 
@@ -115,6 +117,7 @@ void main() {
     expect(find.text('外観'), findsOneWidget);
     expect(find.text('勤務'), findsOneWidget);
     expect(find.text('売上'), findsOneWidget);
+    expect(find.text('プレミアム'), findsOneWidget);
     expect(find.text('シフトパターン'), findsOneWidget);
     expect(find.text('データ管理'), findsOneWidget);
     expect(find.text('アプリ情報'), findsOneWidget);

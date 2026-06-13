@@ -46,6 +46,7 @@ class LabeledTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           validator: validator,
           onChanged: onChanged,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           decoration: InputDecoration(
             suffixText: suffix,
             border: const OutlineInputBorder(),

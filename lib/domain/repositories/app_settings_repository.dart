@@ -11,5 +11,6 @@ abstract class AppSettingsRepository {
   Future<void> updateImprovementStandardEnabled(bool enabled);
   Future<void> updateMaxMonthlyShifts(int count);
   Future<void> updateMaxMonthlyRestraintHours(int hours);
+  Future<void> updatePremiumStatus(bool isPremium);
   Future<void> deleteAllUserData();
 }
