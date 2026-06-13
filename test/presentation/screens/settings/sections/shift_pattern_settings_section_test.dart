@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:taxi_shift_app/application/providers/repositories_provider.dart';
 import 'package:taxi_shift_app/data/repositories/shift_patterns_repository.dart';
@@ -70,14 +70,14 @@ void main() {
     return ProviderScope(
       overrides: [shiftPatternsRepositoryProvider.overrideWithValue(mockRepo)],
       child: const MaterialApp(
-        locale: const Locale('ja', 'JP'),
-        supportedLocales: const [Locale('ja', 'JP')],
-        localizationsDelegates: const [
+        locale: Locale('ja', 'JP'),
+        supportedLocales: [Locale('ja', 'JP')],
+        localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        home: const Scaffold(body: ShiftPatternSettingsSection()),
+        home: Scaffold(body: ShiftPatternSettingsSection()),
       ),
     );
   }

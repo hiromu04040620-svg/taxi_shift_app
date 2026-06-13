@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../application/providers/app_settings_controller.dart';
+import '../../../providers/improvement_warnings_provider.dart';
+import '../../../providers/revenue_queries_provider.dart';
+import '../../../providers/shift_queries_provider.dart';
+import '../../../providers/work_session_queries_provider.dart';
 import '../widgets/setting_tile.dart';
 import 'section_header.dart';
 
@@ -68,6 +72,18 @@ class DataManagementSection extends ConsumerWidget {
           await ref
               .read(appSettingsControllerProvider.notifier)
               .deleteAllUserData();
+
+          // Invalidating cached data to refresh UI
+          ref.invalidate(workSessionForDateProvider);
+          ref.invalidate(workSessionsInMonthProvider);
+          ref.invalidate(revenueForDateProvider);
+          ref.invalidate(revenuesInMonthProvider);
+          ref.invalidate(monthlySummaryProvider);
+          ref.invalidate(shiftTypeForDateProvider);
+          ref.invalidate(shiftsInMonthProvider);
+          ref.invalidate(monthlyWarningsProvider);
+          ref.invalidate(sessionWarningsProvider);
+
           if (context.mounted) {
             ScaffoldMessenger.of(
               context,
@@ -102,8 +118,11 @@ class DataManagementSection extends ConsumerWidget {
         ),
         SettingTile(
           title: 'すべてのデータを削除',
-          titleColor: Colors.red,
-          leading: const Icon(Icons.delete_forever, color: Colors.red),
+          titleColor: Theme.of(context).colorScheme.error,
+          leading: Icon(
+            Icons.delete_forever,
+            color: Theme.of(context).colorScheme.error,
+          ),
           onTap: () => _showDeleteConfirmDialog(context, ref),
         ),
       ],
