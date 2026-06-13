@@ -158,7 +158,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     // 第1段階の確認ダイアログが表示されるか
-    expect(find.text('全データ削除'), findsOneWidget);
-    expect(find.textContaining('本当によろしいですか？'), findsOneWidget);
+    expect(find.text('すべてのデータを削除しますか？'), findsOneWidget);
+    expect(find.textContaining('この操作は元に戻せません。'), findsOneWidget);
   });
 }

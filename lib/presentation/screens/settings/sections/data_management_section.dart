@@ -20,23 +20,20 @@ class DataManagementSection extends ConsumerWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('全データ削除'),
+          title: const Text('すべてのデータを削除しますか？'),
           content: const Text(
-            'これまでに入力したすべての勤務実績、売上、シフト例外データが削除されます。\n'
-            '※アプリ設定とシフトパターンは保持されます。\n\n'
-            '本当によろしいですか？（この操作は元に戻せません）',
+            '勤務記録・売上記録・シフト例外がすべて削除されます。\n'
+            'シフトパターンとアプリ設定は保持されます。\n'
+            'この操作は元に戻せません。',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('キャンセル'),
             ),
-            FilledButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: const Text('削除する'),
+              child: const Text('次へ'),
             ),
           ],
         );
@@ -48,8 +45,8 @@ class DataManagementSection extends ConsumerWidget {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('最終確認'),
-            content: const Text('本当にすべてのデータを削除しますか？'),
+            title: const Text('本当に削除しますか？'),
+            content: const Text('削除を実行すると元に戻せません。'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -60,7 +57,7 @@ class DataManagementSection extends ConsumerWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('完全に削除'),
+                child: const Text('削除する'),
               ),
             ],
           );
@@ -85,15 +82,15 @@ class DataManagementSection extends ConsumerWidget {
           ref.invalidate(sessionWarningsProvider);
 
           if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('すべてのデータを削除しました')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('すべての勤務・売上・シフト例外を削除しました')),
+            );
           }
         } catch (e) {
           if (context.mounted) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text('削除中にエラーが発生しました: $e')));
+            ).showSnackBar(SnackBar(content: Text('削除に失敗しました: $e')));
           }
         }
       }
