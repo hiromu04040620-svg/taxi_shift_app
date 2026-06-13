@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/theme/design_tokens.dart';
 import 'widgets/day_detail_panel.dart';
 import 'widgets/shift_calendar.dart';
 import 'widgets/shift_legend.dart';
@@ -57,6 +58,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         title: Text(headerTitle, style: textTheme.titleLarge),
         actions: [
           IconButton(
+            icon: const Icon(Icons.today),
+            onPressed: _resetToToday,
+            tooltip: '今日へ',
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
               context.push('/settings');
@@ -68,18 +74,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       body: Column(
         children: [
           const ShiftLegend(),
-          SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.45,
-            child: SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
-              child: ShiftCalendar(
-                focusedMonth: _focusedMonth,
-                selectedDate: _selectedDate,
-                onDaySelected: _onDaySelected,
-                onPageChanged: _onPageChanged,
-              ),
-            ),
+          ShiftCalendar(
+            focusedMonth: _focusedMonth,
+            selectedDate: _selectedDate,
+            onDaySelected: _onDaySelected,
+            onPageChanged: _onPageChanged,
           ),
+          const SizedBox(height: AppSpacing.xs),
           const Divider(height: 1),
           Expanded(
             child: SingleChildScrollView(
@@ -87,11 +88,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _resetToToday,
-        tooltip: '今日へ',
-        child: const Icon(Icons.today),
       ),
     );
   }

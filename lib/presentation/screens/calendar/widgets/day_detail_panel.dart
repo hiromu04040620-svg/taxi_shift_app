@@ -33,7 +33,12 @@ class DayDetailPanel extends ConsumerWidget {
     final warningsAsync = ref.watch(sessionWarningsProvider(date));
 
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -119,11 +124,13 @@ class DayDetailPanel extends ConsumerWidget {
             error: (e, st) => const SizedBox.shrink(),
           ),
 
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
 
           // アクションボタン
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            alignment: WrapAlignment.center,
             children: [
               FilledButton.icon(
                 onPressed: () {
