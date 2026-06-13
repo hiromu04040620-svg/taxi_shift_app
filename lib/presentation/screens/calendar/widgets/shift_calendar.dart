@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/theme/design_tokens.dart';
@@ -37,6 +38,13 @@ class ShiftCalendar extends ConsumerWidget {
           lastDay: lastDay,
           focusedDay: focusedMonth,
           headerVisible: false,
+          daysOfWeekHeight: AppSpacing.lg + AppSpacing.xs,
+          daysOfWeekStyle: DaysOfWeekStyle(
+            weekdayStyle:
+                Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
+            weekendStyle:
+                Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
+          ),
           rowHeight: AppTapTarget.min + AppSpacing.sm,
           selectedDayPredicate: (day) => isSameDay(selectedDate, day),
           onDaySelected: (selectedDay, focusedDay) {
@@ -44,6 +52,25 @@ class ShiftCalendar extends ConsumerWidget {
           },
           onPageChanged: onPageChanged,
           calendarBuilders: CalendarBuilders<dynamic>(
+            dowBuilder: (context, day) {
+              final text = DateFormat.E('ja_JP').format(day);
+              Color? color;
+              if (day.weekday == DateTime.sunday) {
+                color = Theme.of(context).colorScheme.error;
+              } else if (day.weekday == DateTime.saturday) {
+                color = Theme.of(context).colorScheme.primary;
+              } else {
+                color = Theme.of(context).colorScheme.onSurface;
+              }
+              return Center(
+                child: Text(
+                  text,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: color),
+                ),
+              );
+            },
             defaultBuilder: (context, day, focusedDay) {
               return CalendarDayCell(
                 date: day,
