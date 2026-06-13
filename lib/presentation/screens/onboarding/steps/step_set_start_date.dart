@@ -28,6 +28,7 @@ class StepSetStartDate extends ConsumerStatefulWidget {
 
 class _StepSetStartDateState extends ConsumerState<StepSetStartDate> {
   late DateTime _selectedDate;
+  DateTime? _endDate;
   int _cycleOffsetIndex = 0;
   bool _isLoading = false;
 
@@ -53,7 +54,29 @@ class _StepSetStartDateState extends ConsumerState<StepSetStartDate> {
     }
   }
 
+  Future<void> _selectEndDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? _selectedDate,
+      firstDate: _selectedDate,
+      lastDate: DateTime(2030, 12, 31),
+      locale: const Locale('ja', 'JP'),
+    );
+    if (picked != null) {
+      setState(() {
+        _endDate = picked;
+      });
+    }
+  }
+
   Future<void> _complete() async {
+    if (_endDate != null && _endDate!.isBefore(_selectedDate)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('終了日は開始日以降の日付を指定してください。')));
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -73,6 +96,7 @@ class _StepSetStartDateState extends ConsumerState<StepSetStartDate> {
         cycle: widget.selectedPreset.cycle,
         startDate: anchorDate,
         validFrom: anchorDate,
+        validUntil: _endDate,
         isActive: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -120,47 +144,119 @@ class _StepSetStartDateState extends ConsumerState<StepSetStartDate> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              '直近の出番日を選択してください。\nこの日からサイクルが開始されます',
-              style: textTheme.bodyLarge,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Card(
-              child: ListTile(
-                title: const Text('選択日'),
-                subtitle: Text(
-                  DateFormat('yyyy年M月d日 (E)', 'ja_JP').format(_selectedDate),
-                  style: textTheme.titleMedium,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '直近の出番日を選択してください。\nこの日からサイクルが開始されます',
+                      style: textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Card(
+                      child: ListTile(
+                        title: const Text('選択日'),
+                        subtitle: Text(
+                          DateFormat(
+                            'yyyy年M月d日 (E)',
+                            'ja_JP',
+                          ).format(_selectedDate),
+                          style: textTheme.titleMedium,
+                        ),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: _isLoading ? null : _selectDate,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text('選択日のシフト種別', style: textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      children: List.generate(length, (index) {
+                        final type = widget.selectedPreset.cycle[index];
+                        return ChoiceChip(
+                          label: Text(
+                            '$index: ${ShiftTypeDisplay.shortLabel(type)}',
+                          ),
+                          selected: _cycleOffsetIndex == index,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() {
+                                _cycleOffsetIndex = index;
+                              });
+                            }
+                          },
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text('終了日（任意）', style: textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '退職や転属の予定がある場合は設定してください。空欄の場合は無期限になります。',
+                      style: textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Card(
+                      child: ListTile(
+                        title: const Text('終了日'),
+                        subtitle: Text(
+                          _endDate != null
+                              ? DateFormat(
+                                  'yyyy年M月d日 (E)',
+                                  'ja_JP',
+                                ).format(_endDate!)
+                              : '無期限',
+                          style: textTheme.titleMedium,
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_endDate != null)
+                              IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => setState(() => _endDate = null),
+                              ),
+                            const Icon(Icons.calendar_today),
+                          ],
+                        ),
+                        onTap: _isLoading ? null : _selectEndDate,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text('プレビュー', style: textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.sm),
+                    CyclePreview(
+                      cycle: previewCycle.cast(),
+                      startDate: _selectedDate,
+                    ),
+                  ],
                 ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: _isLoading ? null : _selectDate,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            Text('選択日のシフト種別', style: textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              children: List.generate(length, (index) {
-                final type = widget.selectedPreset.cycle[index];
-                return ChoiceChip(
-                  label: Text('$index: ${ShiftTypeDisplay.shortLabel(type)}'),
-                  selected: _cycleOffsetIndex == index,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() {
-                        _cycleOffsetIndex = index;
-                      });
-                    }
-                  },
-                );
-              }),
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    '※ 開始日、終了日、サイクルパターンは後から「設定」画面でいつでも変更できます。',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('プレビュー', style: textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.sm),
-            CyclePreview(cycle: previewCycle.cast(), startDate: _selectedDate),
-            const Spacer(),
             FilledButton(
               onPressed: _isLoading ? null : _complete,
               child: _isLoading
