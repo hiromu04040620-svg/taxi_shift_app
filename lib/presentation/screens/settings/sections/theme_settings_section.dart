@@ -14,8 +14,6 @@ class ThemeSettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final actions = ref.read(appSettingsControllerProvider.notifier);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -46,7 +44,9 @@ class ThemeSettingsSection extends ConsumerWidget {
               ),
             );
             if (result != null) {
-              await actions.updateThemeMode(result);
+              await ref
+                  .read(appSettingsControllerProvider.notifier)
+                  .updateThemeMode(result);
             }
           },
         ),

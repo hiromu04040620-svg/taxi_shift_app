@@ -92,7 +92,7 @@ void main() {
     expect(find.text('サイクル種別を変更'), findsOneWidget);
   });
 
-  testWidgets('「開始日を変更」タップで DatePicker が開く', (tester) async {
+  testWidgets('「開始日を変更」タップで PeriodChangeDialog が開く', (tester) async {
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
 
@@ -100,7 +100,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('OK'), findsOneWidget);
+    expect(find.text('適用期間・開始日の変更'), findsOneWidget);
   });
 
   testWidgets('「サイクル種別を変更」タップでプリセット一覧ダイアログが開く', (tester) async {

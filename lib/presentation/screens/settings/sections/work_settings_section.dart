@@ -15,8 +15,6 @@ class WorkSettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final actions = ref.read(appSettingsControllerProvider.notifier);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -26,7 +24,9 @@ class WorkSettingsSection extends ConsumerWidget {
           subtitle: const Text('拘束時間や休息期間の違反をチェックします'),
           value: settings.improvementStandardEnabled,
           onChanged: (val) {
-            actions.updateImprovementStandardEnabled(val);
+            ref
+                .read(appSettingsControllerProvider.notifier)
+                .updateImprovementStandardEnabled(val);
           },
         ),
         SettingTile(
@@ -46,7 +46,9 @@ class WorkSettingsSection extends ConsumerWidget {
                 return '1から31の間で入力してください';
               },
               onSaved: (val) {
-                actions.updateMonthlyClosingDay(val);
+                ref
+                    .read(appSettingsControllerProvider.notifier)
+                    .updateMonthlyClosingDay(val);
               },
             );
           },
@@ -61,7 +63,9 @@ class WorkSettingsSection extends ConsumerWidget {
               title: '月最大出番数',
               initialValue: settings.maxMonthlyShifts,
               suffixText: '出番',
-              onSaved: (val) => actions.updateMaxMonthlyShifts(val),
+              onSaved: (val) => ref
+                  .read(appSettingsControllerProvider.notifier)
+                  .updateMaxMonthlyShifts(val),
             );
           },
         ),
@@ -75,7 +79,9 @@ class WorkSettingsSection extends ConsumerWidget {
               title: '月最大拘束時間',
               initialValue: settings.maxMonthlyRestraintHours,
               suffixText: '時間',
-              onSaved: (val) => actions.updateMaxMonthlyRestraintHours(val),
+              onSaved: (val) => ref
+                  .read(appSettingsControllerProvider.notifier)
+                  .updateMaxMonthlyRestraintHours(val),
             );
           },
         ),

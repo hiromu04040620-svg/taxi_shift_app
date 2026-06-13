@@ -6,8 +6,8 @@ import '../../../../../core/theme/design_tokens.dart';
 import '../../../providers/shift_queries_provider.dart';
 import '../../onboarding/widgets/cycle_preview.dart';
 import '../widgets/cycle_type_change_dialog.dart';
+import '../widgets/period_change_dialog.dart';
 import '../widgets/setting_tile.dart';
-import '../widgets/start_date_change_dialog.dart';
 import 'section_header.dart';
 
 class ShiftPatternSettingsSection extends ConsumerWidget {
@@ -67,7 +67,11 @@ class ShiftPatternSettingsSection extends ConsumerWidget {
                     size: AppIconSize.sm,
                   ),
                   onTap: () {
-                    showStartDateChangeDialog(context, ref, pattern);
+                    showDialog<void>(
+                      context: context,
+                      builder: (context) =>
+                          PeriodChangeDialog(pattern: pattern),
+                    );
                   },
                 ),
                 SettingTile(

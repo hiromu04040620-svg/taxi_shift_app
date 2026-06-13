@@ -1162,6 +1162,17 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
         requiredDuringInsert: true,
         defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
       ).withConverter<DateTime>($RevenuesTable.$converterdate);
+  static const VerificationMeta _workSessionIdMeta = const VerificationMeta(
+    'workSessionId',
+  );
+  @override
+  late final GeneratedColumn<int> workSessionId = GeneratedColumn<int>(
+    'work_session_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _grossRevenueMeta = const VerificationMeta(
     'grossRevenue',
   );
@@ -1194,23 +1205,34 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _cashlessAmountMeta = const VerificationMeta(
-    'cashlessAmount',
+  static const VerificationMeta _cardAmountMeta = const VerificationMeta(
+    'cardAmount',
   );
   @override
-  late final GeneratedColumn<int> cashlessAmount = GeneratedColumn<int>(
-    'cashless_amount',
+  late final GeneratedColumn<int> cardAmount = GeneratedColumn<int>(
+    'card_amount',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _otherAmountMeta = const VerificationMeta(
-    'otherAmount',
+  static const VerificationMeta _appAmountMeta = const VerificationMeta(
+    'appAmount',
   );
   @override
-  late final GeneratedColumn<int> otherAmount = GeneratedColumn<int>(
-    'other_amount',
+  late final GeneratedColumn<int> appAmount = GeneratedColumn<int>(
+    'app_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ticketAmountMeta = const VerificationMeta(
+    'ticketAmount',
+  );
+  @override
+  late final GeneratedColumn<int> ticketAmount = GeneratedColumn<int>(
+    'ticket_amount',
     aliasedName,
     false,
     type: DriftSqlType.int,
@@ -1260,17 +1282,6 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _photoPathMeta = const VerificationMeta(
-    'photoPath',
-  );
-  @override
-  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
-    'photo_path',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -1286,16 +1297,17 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
     updatedAt,
     id,
     date,
+    workSessionId,
     grossRevenue,
     taxExcludedRevenue,
     cashAmount,
-    cashlessAmount,
-    otherAmount,
+    cardAmount,
+    appAmount,
+    ticketAmount,
     totalDistance,
     occupiedDistance,
     ridesCount,
     fuelAmount,
-    photoPath,
     note,
   ];
   @override
@@ -1324,6 +1336,15 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
     }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('work_session_id')) {
+      context.handle(
+        _workSessionIdMeta,
+        workSessionId.isAcceptableOrUnknown(
+          data['work_session_id']!,
+          _workSessionIdMeta,
+        ),
+      );
     }
     if (data.containsKey('gross_revenue')) {
       context.handle(
@@ -1355,27 +1376,32 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
     } else if (isInserting) {
       context.missing(_cashAmountMeta);
     }
-    if (data.containsKey('cashless_amount')) {
+    if (data.containsKey('card_amount')) {
       context.handle(
-        _cashlessAmountMeta,
-        cashlessAmount.isAcceptableOrUnknown(
-          data['cashless_amount']!,
-          _cashlessAmountMeta,
-        ),
+        _cardAmountMeta,
+        cardAmount.isAcceptableOrUnknown(data['card_amount']!, _cardAmountMeta),
       );
     } else if (isInserting) {
-      context.missing(_cashlessAmountMeta);
+      context.missing(_cardAmountMeta);
     }
-    if (data.containsKey('other_amount')) {
+    if (data.containsKey('app_amount')) {
       context.handle(
-        _otherAmountMeta,
-        otherAmount.isAcceptableOrUnknown(
-          data['other_amount']!,
-          _otherAmountMeta,
+        _appAmountMeta,
+        appAmount.isAcceptableOrUnknown(data['app_amount']!, _appAmountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_appAmountMeta);
+    }
+    if (data.containsKey('ticket_amount')) {
+      context.handle(
+        _ticketAmountMeta,
+        ticketAmount.isAcceptableOrUnknown(
+          data['ticket_amount']!,
+          _ticketAmountMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_otherAmountMeta);
+      context.missing(_ticketAmountMeta);
     }
     if (data.containsKey('total_distance')) {
       context.handle(
@@ -1413,12 +1439,6 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
         fuelAmount.isAcceptableOrUnknown(data['fuel_amount']!, _fuelAmountMeta),
       );
     }
-    if (data.containsKey('photo_path')) {
-      context.handle(
-        _photoPathMeta,
-        photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta),
-      );
-    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -1452,6 +1472,10 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
           data['${effectivePrefix}date'],
         )!,
       ),
+      workSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}work_session_id'],
+      ),
       grossRevenue: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}gross_revenue'],
@@ -1464,13 +1488,17 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
         DriftSqlType.int,
         data['${effectivePrefix}cash_amount'],
       )!,
-      cashlessAmount: attachedDatabase.typeMapping.read(
+      cardAmount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}cashless_amount'],
+        data['${effectivePrefix}card_amount'],
       )!,
-      otherAmount: attachedDatabase.typeMapping.read(
+      appAmount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}other_amount'],
+        data['${effectivePrefix}app_amount'],
+      )!,
+      ticketAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ticket_amount'],
       )!,
       totalDistance: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
@@ -1487,10 +1515,6 @@ class $RevenuesTable extends Revenues with TableInfo<$RevenuesTable, Revenue> {
       fuelAmount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}fuel_amount'],
-      ),
-      photoPath: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}photo_path'],
       ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1513,32 +1537,34 @@ class Revenue extends DataClass implements Insertable<Revenue> {
   final DateTime updatedAt;
   final int id;
   final DateTime date;
+  final int? workSessionId;
   final int grossRevenue;
   final int taxExcludedRevenue;
   final int cashAmount;
-  final int cashlessAmount;
-  final int otherAmount;
+  final int cardAmount;
+  final int appAmount;
+  final int ticketAmount;
   final double totalDistance;
   final double occupiedDistance;
   final int ridesCount;
   final int? fuelAmount;
-  final String? photoPath;
   final String? note;
   const Revenue({
     required this.createdAt,
     required this.updatedAt,
     required this.id,
     required this.date,
+    this.workSessionId,
     required this.grossRevenue,
     required this.taxExcludedRevenue,
     required this.cashAmount,
-    required this.cashlessAmount,
-    required this.otherAmount,
+    required this.cardAmount,
+    required this.appAmount,
+    required this.ticketAmount,
     required this.totalDistance,
     required this.occupiedDistance,
     required this.ridesCount,
     this.fuelAmount,
-    this.photoPath,
     this.note,
   });
   @override
@@ -1550,19 +1576,20 @@ class Revenue extends DataClass implements Insertable<Revenue> {
     {
       map['date'] = Variable<String>($RevenuesTable.$converterdate.toSql(date));
     }
+    if (!nullToAbsent || workSessionId != null) {
+      map['work_session_id'] = Variable<int>(workSessionId);
+    }
     map['gross_revenue'] = Variable<int>(grossRevenue);
     map['tax_excluded_revenue'] = Variable<int>(taxExcludedRevenue);
     map['cash_amount'] = Variable<int>(cashAmount);
-    map['cashless_amount'] = Variable<int>(cashlessAmount);
-    map['other_amount'] = Variable<int>(otherAmount);
+    map['card_amount'] = Variable<int>(cardAmount);
+    map['app_amount'] = Variable<int>(appAmount);
+    map['ticket_amount'] = Variable<int>(ticketAmount);
     map['total_distance'] = Variable<double>(totalDistance);
     map['occupied_distance'] = Variable<double>(occupiedDistance);
     map['rides_count'] = Variable<int>(ridesCount);
     if (!nullToAbsent || fuelAmount != null) {
       map['fuel_amount'] = Variable<int>(fuelAmount);
-    }
-    if (!nullToAbsent || photoPath != null) {
-      map['photo_path'] = Variable<String>(photoPath);
     }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -1576,20 +1603,21 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       updatedAt: Value(updatedAt),
       id: Value(id),
       date: Value(date),
+      workSessionId: workSessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(workSessionId),
       grossRevenue: Value(grossRevenue),
       taxExcludedRevenue: Value(taxExcludedRevenue),
       cashAmount: Value(cashAmount),
-      cashlessAmount: Value(cashlessAmount),
-      otherAmount: Value(otherAmount),
+      cardAmount: Value(cardAmount),
+      appAmount: Value(appAmount),
+      ticketAmount: Value(ticketAmount),
       totalDistance: Value(totalDistance),
       occupiedDistance: Value(occupiedDistance),
       ridesCount: Value(ridesCount),
       fuelAmount: fuelAmount == null && nullToAbsent
           ? const Value.absent()
           : Value(fuelAmount),
-      photoPath: photoPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(photoPath),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
@@ -1604,16 +1632,17 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<int>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
+      workSessionId: serializer.fromJson<int?>(json['workSessionId']),
       grossRevenue: serializer.fromJson<int>(json['grossRevenue']),
       taxExcludedRevenue: serializer.fromJson<int>(json['taxExcludedRevenue']),
       cashAmount: serializer.fromJson<int>(json['cashAmount']),
-      cashlessAmount: serializer.fromJson<int>(json['cashlessAmount']),
-      otherAmount: serializer.fromJson<int>(json['otherAmount']),
+      cardAmount: serializer.fromJson<int>(json['cardAmount']),
+      appAmount: serializer.fromJson<int>(json['appAmount']),
+      ticketAmount: serializer.fromJson<int>(json['ticketAmount']),
       totalDistance: serializer.fromJson<double>(json['totalDistance']),
       occupiedDistance: serializer.fromJson<double>(json['occupiedDistance']),
       ridesCount: serializer.fromJson<int>(json['ridesCount']),
       fuelAmount: serializer.fromJson<int?>(json['fuelAmount']),
-      photoPath: serializer.fromJson<String?>(json['photoPath']),
       note: serializer.fromJson<String?>(json['note']),
     );
   }
@@ -1625,16 +1654,17 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<int>(id),
       'date': serializer.toJson<DateTime>(date),
+      'workSessionId': serializer.toJson<int?>(workSessionId),
       'grossRevenue': serializer.toJson<int>(grossRevenue),
       'taxExcludedRevenue': serializer.toJson<int>(taxExcludedRevenue),
       'cashAmount': serializer.toJson<int>(cashAmount),
-      'cashlessAmount': serializer.toJson<int>(cashlessAmount),
-      'otherAmount': serializer.toJson<int>(otherAmount),
+      'cardAmount': serializer.toJson<int>(cardAmount),
+      'appAmount': serializer.toJson<int>(appAmount),
+      'ticketAmount': serializer.toJson<int>(ticketAmount),
       'totalDistance': serializer.toJson<double>(totalDistance),
       'occupiedDistance': serializer.toJson<double>(occupiedDistance),
       'ridesCount': serializer.toJson<int>(ridesCount),
       'fuelAmount': serializer.toJson<int?>(fuelAmount),
-      'photoPath': serializer.toJson<String?>(photoPath),
       'note': serializer.toJson<String?>(note),
     };
   }
@@ -1644,32 +1674,36 @@ class Revenue extends DataClass implements Insertable<Revenue> {
     DateTime? updatedAt,
     int? id,
     DateTime? date,
+    Value<int?> workSessionId = const Value.absent(),
     int? grossRevenue,
     int? taxExcludedRevenue,
     int? cashAmount,
-    int? cashlessAmount,
-    int? otherAmount,
+    int? cardAmount,
+    int? appAmount,
+    int? ticketAmount,
     double? totalDistance,
     double? occupiedDistance,
     int? ridesCount,
     Value<int?> fuelAmount = const Value.absent(),
-    Value<String?> photoPath = const Value.absent(),
     Value<String?> note = const Value.absent(),
   }) => Revenue(
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     date: date ?? this.date,
+    workSessionId: workSessionId.present
+        ? workSessionId.value
+        : this.workSessionId,
     grossRevenue: grossRevenue ?? this.grossRevenue,
     taxExcludedRevenue: taxExcludedRevenue ?? this.taxExcludedRevenue,
     cashAmount: cashAmount ?? this.cashAmount,
-    cashlessAmount: cashlessAmount ?? this.cashlessAmount,
-    otherAmount: otherAmount ?? this.otherAmount,
+    cardAmount: cardAmount ?? this.cardAmount,
+    appAmount: appAmount ?? this.appAmount,
+    ticketAmount: ticketAmount ?? this.ticketAmount,
     totalDistance: totalDistance ?? this.totalDistance,
     occupiedDistance: occupiedDistance ?? this.occupiedDistance,
     ridesCount: ridesCount ?? this.ridesCount,
     fuelAmount: fuelAmount.present ? fuelAmount.value : this.fuelAmount,
-    photoPath: photoPath.present ? photoPath.value : this.photoPath,
     note: note.present ? note.value : this.note,
   );
   Revenue copyWithCompanion(RevenuesCompanion data) {
@@ -1678,6 +1712,9 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       date: data.date.present ? data.date.value : this.date,
+      workSessionId: data.workSessionId.present
+          ? data.workSessionId.value
+          : this.workSessionId,
       grossRevenue: data.grossRevenue.present
           ? data.grossRevenue.value
           : this.grossRevenue,
@@ -1687,12 +1724,13 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       cashAmount: data.cashAmount.present
           ? data.cashAmount.value
           : this.cashAmount,
-      cashlessAmount: data.cashlessAmount.present
-          ? data.cashlessAmount.value
-          : this.cashlessAmount,
-      otherAmount: data.otherAmount.present
-          ? data.otherAmount.value
-          : this.otherAmount,
+      cardAmount: data.cardAmount.present
+          ? data.cardAmount.value
+          : this.cardAmount,
+      appAmount: data.appAmount.present ? data.appAmount.value : this.appAmount,
+      ticketAmount: data.ticketAmount.present
+          ? data.ticketAmount.value
+          : this.ticketAmount,
       totalDistance: data.totalDistance.present
           ? data.totalDistance.value
           : this.totalDistance,
@@ -1705,7 +1743,6 @@ class Revenue extends DataClass implements Insertable<Revenue> {
       fuelAmount: data.fuelAmount.present
           ? data.fuelAmount.value
           : this.fuelAmount,
-      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
       note: data.note.present ? data.note.value : this.note,
     );
   }
@@ -1717,16 +1754,17 @@ class Revenue extends DataClass implements Insertable<Revenue> {
           ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('date: $date, ')
+          ..write('workSessionId: $workSessionId, ')
           ..write('grossRevenue: $grossRevenue, ')
           ..write('taxExcludedRevenue: $taxExcludedRevenue, ')
           ..write('cashAmount: $cashAmount, ')
-          ..write('cashlessAmount: $cashlessAmount, ')
-          ..write('otherAmount: $otherAmount, ')
+          ..write('cardAmount: $cardAmount, ')
+          ..write('appAmount: $appAmount, ')
+          ..write('ticketAmount: $ticketAmount, ')
           ..write('totalDistance: $totalDistance, ')
           ..write('occupiedDistance: $occupiedDistance, ')
           ..write('ridesCount: $ridesCount, ')
           ..write('fuelAmount: $fuelAmount, ')
-          ..write('photoPath: $photoPath, ')
           ..write('note: $note')
           ..write(')'))
         .toString();
@@ -1738,16 +1776,17 @@ class Revenue extends DataClass implements Insertable<Revenue> {
     updatedAt,
     id,
     date,
+    workSessionId,
     grossRevenue,
     taxExcludedRevenue,
     cashAmount,
-    cashlessAmount,
-    otherAmount,
+    cardAmount,
+    appAmount,
+    ticketAmount,
     totalDistance,
     occupiedDistance,
     ridesCount,
     fuelAmount,
-    photoPath,
     note,
   );
   @override
@@ -1758,16 +1797,17 @@ class Revenue extends DataClass implements Insertable<Revenue> {
           other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.date == this.date &&
+          other.workSessionId == this.workSessionId &&
           other.grossRevenue == this.grossRevenue &&
           other.taxExcludedRevenue == this.taxExcludedRevenue &&
           other.cashAmount == this.cashAmount &&
-          other.cashlessAmount == this.cashlessAmount &&
-          other.otherAmount == this.otherAmount &&
+          other.cardAmount == this.cardAmount &&
+          other.appAmount == this.appAmount &&
+          other.ticketAmount == this.ticketAmount &&
           other.totalDistance == this.totalDistance &&
           other.occupiedDistance == this.occupiedDistance &&
           other.ridesCount == this.ridesCount &&
           other.fuelAmount == this.fuelAmount &&
-          other.photoPath == this.photoPath &&
           other.note == this.note);
 }
 
@@ -1776,32 +1816,34 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
   final Value<DateTime> updatedAt;
   final Value<int> id;
   final Value<DateTime> date;
+  final Value<int?> workSessionId;
   final Value<int> grossRevenue;
   final Value<int> taxExcludedRevenue;
   final Value<int> cashAmount;
-  final Value<int> cashlessAmount;
-  final Value<int> otherAmount;
+  final Value<int> cardAmount;
+  final Value<int> appAmount;
+  final Value<int> ticketAmount;
   final Value<double> totalDistance;
   final Value<double> occupiedDistance;
   final Value<int> ridesCount;
   final Value<int?> fuelAmount;
-  final Value<String?> photoPath;
   final Value<String?> note;
   const RevenuesCompanion({
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.date = const Value.absent(),
+    this.workSessionId = const Value.absent(),
     this.grossRevenue = const Value.absent(),
     this.taxExcludedRevenue = const Value.absent(),
     this.cashAmount = const Value.absent(),
-    this.cashlessAmount = const Value.absent(),
-    this.otherAmount = const Value.absent(),
+    this.cardAmount = const Value.absent(),
+    this.appAmount = const Value.absent(),
+    this.ticketAmount = const Value.absent(),
     this.totalDistance = const Value.absent(),
     this.occupiedDistance = const Value.absent(),
     this.ridesCount = const Value.absent(),
     this.fuelAmount = const Value.absent(),
-    this.photoPath = const Value.absent(),
     this.note = const Value.absent(),
   });
   RevenuesCompanion.insert({
@@ -1809,23 +1851,25 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     required DateTime date,
+    this.workSessionId = const Value.absent(),
     required int grossRevenue,
     required int taxExcludedRevenue,
     required int cashAmount,
-    required int cashlessAmount,
-    required int otherAmount,
+    required int cardAmount,
+    required int appAmount,
+    required int ticketAmount,
     required double totalDistance,
     required double occupiedDistance,
     required int ridesCount,
     this.fuelAmount = const Value.absent(),
-    this.photoPath = const Value.absent(),
     this.note = const Value.absent(),
   }) : date = Value(date),
        grossRevenue = Value(grossRevenue),
        taxExcludedRevenue = Value(taxExcludedRevenue),
        cashAmount = Value(cashAmount),
-       cashlessAmount = Value(cashlessAmount),
-       otherAmount = Value(otherAmount),
+       cardAmount = Value(cardAmount),
+       appAmount = Value(appAmount),
+       ticketAmount = Value(ticketAmount),
        totalDistance = Value(totalDistance),
        occupiedDistance = Value(occupiedDistance),
        ridesCount = Value(ridesCount);
@@ -1834,16 +1878,17 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     Expression<DateTime>? updatedAt,
     Expression<int>? id,
     Expression<String>? date,
+    Expression<int>? workSessionId,
     Expression<int>? grossRevenue,
     Expression<int>? taxExcludedRevenue,
     Expression<int>? cashAmount,
-    Expression<int>? cashlessAmount,
-    Expression<int>? otherAmount,
+    Expression<int>? cardAmount,
+    Expression<int>? appAmount,
+    Expression<int>? ticketAmount,
     Expression<double>? totalDistance,
     Expression<double>? occupiedDistance,
     Expression<int>? ridesCount,
     Expression<int>? fuelAmount,
-    Expression<String>? photoPath,
     Expression<String>? note,
   }) {
     return RawValuesInsertable({
@@ -1851,17 +1896,18 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (date != null) 'date': date,
+      if (workSessionId != null) 'work_session_id': workSessionId,
       if (grossRevenue != null) 'gross_revenue': grossRevenue,
       if (taxExcludedRevenue != null)
         'tax_excluded_revenue': taxExcludedRevenue,
       if (cashAmount != null) 'cash_amount': cashAmount,
-      if (cashlessAmount != null) 'cashless_amount': cashlessAmount,
-      if (otherAmount != null) 'other_amount': otherAmount,
+      if (cardAmount != null) 'card_amount': cardAmount,
+      if (appAmount != null) 'app_amount': appAmount,
+      if (ticketAmount != null) 'ticket_amount': ticketAmount,
       if (totalDistance != null) 'total_distance': totalDistance,
       if (occupiedDistance != null) 'occupied_distance': occupiedDistance,
       if (ridesCount != null) 'rides_count': ridesCount,
       if (fuelAmount != null) 'fuel_amount': fuelAmount,
-      if (photoPath != null) 'photo_path': photoPath,
       if (note != null) 'note': note,
     });
   }
@@ -1871,16 +1917,17 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     Value<DateTime>? updatedAt,
     Value<int>? id,
     Value<DateTime>? date,
+    Value<int?>? workSessionId,
     Value<int>? grossRevenue,
     Value<int>? taxExcludedRevenue,
     Value<int>? cashAmount,
-    Value<int>? cashlessAmount,
-    Value<int>? otherAmount,
+    Value<int>? cardAmount,
+    Value<int>? appAmount,
+    Value<int>? ticketAmount,
     Value<double>? totalDistance,
     Value<double>? occupiedDistance,
     Value<int>? ridesCount,
     Value<int?>? fuelAmount,
-    Value<String?>? photoPath,
     Value<String?>? note,
   }) {
     return RevenuesCompanion(
@@ -1888,16 +1935,17 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
       updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       date: date ?? this.date,
+      workSessionId: workSessionId ?? this.workSessionId,
       grossRevenue: grossRevenue ?? this.grossRevenue,
       taxExcludedRevenue: taxExcludedRevenue ?? this.taxExcludedRevenue,
       cashAmount: cashAmount ?? this.cashAmount,
-      cashlessAmount: cashlessAmount ?? this.cashlessAmount,
-      otherAmount: otherAmount ?? this.otherAmount,
+      cardAmount: cardAmount ?? this.cardAmount,
+      appAmount: appAmount ?? this.appAmount,
+      ticketAmount: ticketAmount ?? this.ticketAmount,
       totalDistance: totalDistance ?? this.totalDistance,
       occupiedDistance: occupiedDistance ?? this.occupiedDistance,
       ridesCount: ridesCount ?? this.ridesCount,
       fuelAmount: fuelAmount ?? this.fuelAmount,
-      photoPath: photoPath ?? this.photoPath,
       note: note ?? this.note,
     );
   }
@@ -1919,6 +1967,9 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
         $RevenuesTable.$converterdate.toSql(date.value),
       );
     }
+    if (workSessionId.present) {
+      map['work_session_id'] = Variable<int>(workSessionId.value);
+    }
     if (grossRevenue.present) {
       map['gross_revenue'] = Variable<int>(grossRevenue.value);
     }
@@ -1928,11 +1979,14 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     if (cashAmount.present) {
       map['cash_amount'] = Variable<int>(cashAmount.value);
     }
-    if (cashlessAmount.present) {
-      map['cashless_amount'] = Variable<int>(cashlessAmount.value);
+    if (cardAmount.present) {
+      map['card_amount'] = Variable<int>(cardAmount.value);
     }
-    if (otherAmount.present) {
-      map['other_amount'] = Variable<int>(otherAmount.value);
+    if (appAmount.present) {
+      map['app_amount'] = Variable<int>(appAmount.value);
+    }
+    if (ticketAmount.present) {
+      map['ticket_amount'] = Variable<int>(ticketAmount.value);
     }
     if (totalDistance.present) {
       map['total_distance'] = Variable<double>(totalDistance.value);
@@ -1945,9 +1999,6 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
     }
     if (fuelAmount.present) {
       map['fuel_amount'] = Variable<int>(fuelAmount.value);
-    }
-    if (photoPath.present) {
-      map['photo_path'] = Variable<String>(photoPath.value);
     }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
@@ -1962,16 +2013,17 @@ class RevenuesCompanion extends UpdateCompanion<Revenue> {
           ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('date: $date, ')
+          ..write('workSessionId: $workSessionId, ')
           ..write('grossRevenue: $grossRevenue, ')
           ..write('taxExcludedRevenue: $taxExcludedRevenue, ')
           ..write('cashAmount: $cashAmount, ')
-          ..write('cashlessAmount: $cashlessAmount, ')
-          ..write('otherAmount: $otherAmount, ')
+          ..write('cardAmount: $cardAmount, ')
+          ..write('appAmount: $appAmount, ')
+          ..write('ticketAmount: $ticketAmount, ')
           ..write('totalDistance: $totalDistance, ')
           ..write('occupiedDistance: $occupiedDistance, ')
           ..write('ridesCount: $ridesCount, ')
           ..write('fuelAmount: $fuelAmount, ')
-          ..write('photoPath: $photoPath, ')
           ..write('note: $note')
           ..write(')'))
         .toString();
@@ -2064,6 +2116,15 @@ class $WorkSessionsTable extends WorkSessions
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     createdAt,
@@ -2073,6 +2134,7 @@ class $WorkSessionsTable extends WorkSessions
     startTime,
     endTime,
     breakMinutes,
+    note,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2128,6 +2190,12 @@ class $WorkSessionsTable extends WorkSessions
     } else if (isInserting) {
       context.missing(_breakMinutesMeta);
     }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
     return context;
   }
 
@@ -2167,6 +2235,10 @@ class $WorkSessionsTable extends WorkSessions
         DriftSqlType.int,
         data['${effectivePrefix}break_minutes'],
       )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
     );
   }
 
@@ -2187,6 +2259,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
   final DateTime startTime;
   final DateTime endTime;
   final int breakMinutes;
+  final String? note;
   const WorkSession({
     required this.createdAt,
     required this.updatedAt,
@@ -2195,6 +2268,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     required this.startTime,
     required this.endTime,
     required this.breakMinutes,
+    this.note,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2210,6 +2284,9 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     map['start_time'] = Variable<DateTime>(startTime);
     map['end_time'] = Variable<DateTime>(endTime);
     map['break_minutes'] = Variable<int>(breakMinutes);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
     return map;
   }
 
@@ -2222,6 +2299,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       startTime: Value(startTime),
       endTime: Value(endTime),
       breakMinutes: Value(breakMinutes),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
 
@@ -2238,6 +2316,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       startTime: serializer.fromJson<DateTime>(json['startTime']),
       endTime: serializer.fromJson<DateTime>(json['endTime']),
       breakMinutes: serializer.fromJson<int>(json['breakMinutes']),
+      note: serializer.fromJson<String?>(json['note']),
     );
   }
   @override
@@ -2251,6 +2330,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       'startTime': serializer.toJson<DateTime>(startTime),
       'endTime': serializer.toJson<DateTime>(endTime),
       'breakMinutes': serializer.toJson<int>(breakMinutes),
+      'note': serializer.toJson<String?>(note),
     };
   }
 
@@ -2262,6 +2342,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     DateTime? startTime,
     DateTime? endTime,
     int? breakMinutes,
+    Value<String?> note = const Value.absent(),
   }) => WorkSession(
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -2270,6 +2351,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     startTime: startTime ?? this.startTime,
     endTime: endTime ?? this.endTime,
     breakMinutes: breakMinutes ?? this.breakMinutes,
+    note: note.present ? note.value : this.note,
   );
   WorkSession copyWithCompanion(WorkSessionsCompanion data) {
     return WorkSession(
@@ -2282,6 +2364,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
       breakMinutes: data.breakMinutes.present
           ? data.breakMinutes.value
           : this.breakMinutes,
+      note: data.note.present ? data.note.value : this.note,
     );
   }
 
@@ -2294,7 +2377,8 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
           ..write('date: $date, ')
           ..write('startTime: $startTime, ')
           ..write('endTime: $endTime, ')
-          ..write('breakMinutes: $breakMinutes')
+          ..write('breakMinutes: $breakMinutes, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -2308,6 +2392,7 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
     startTime,
     endTime,
     breakMinutes,
+    note,
   );
   @override
   bool operator ==(Object other) =>
@@ -2319,7 +2404,8 @@ class WorkSession extends DataClass implements Insertable<WorkSession> {
           other.date == this.date &&
           other.startTime == this.startTime &&
           other.endTime == this.endTime &&
-          other.breakMinutes == this.breakMinutes);
+          other.breakMinutes == this.breakMinutes &&
+          other.note == this.note);
 }
 
 class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
@@ -2330,6 +2416,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
   final Value<DateTime> startTime;
   final Value<DateTime> endTime;
   final Value<int> breakMinutes;
+  final Value<String?> note;
   const WorkSessionsCompanion({
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -2338,6 +2425,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     this.startTime = const Value.absent(),
     this.endTime = const Value.absent(),
     this.breakMinutes = const Value.absent(),
+    this.note = const Value.absent(),
   });
   WorkSessionsCompanion.insert({
     this.createdAt = const Value.absent(),
@@ -2347,6 +2435,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     required DateTime startTime,
     required DateTime endTime,
     required int breakMinutes,
+    this.note = const Value.absent(),
   }) : date = Value(date),
        startTime = Value(startTime),
        endTime = Value(endTime),
@@ -2359,6 +2448,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     Expression<DateTime>? startTime,
     Expression<DateTime>? endTime,
     Expression<int>? breakMinutes,
+    Expression<String>? note,
   }) {
     return RawValuesInsertable({
       if (createdAt != null) 'created_at': createdAt,
@@ -2368,6 +2458,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
       if (startTime != null) 'start_time': startTime,
       if (endTime != null) 'end_time': endTime,
       if (breakMinutes != null) 'break_minutes': breakMinutes,
+      if (note != null) 'note': note,
     });
   }
 
@@ -2379,6 +2470,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     Value<DateTime>? startTime,
     Value<DateTime>? endTime,
     Value<int>? breakMinutes,
+    Value<String?>? note,
   }) {
     return WorkSessionsCompanion(
       createdAt: createdAt ?? this.createdAt,
@@ -2388,6 +2480,7 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       breakMinutes: breakMinutes ?? this.breakMinutes,
+      note: note ?? this.note,
     );
   }
 
@@ -2417,6 +2510,9 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
     if (breakMinutes.present) {
       map['break_minutes'] = Variable<int>(breakMinutes.value);
     }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
     return map;
   }
 
@@ -2429,7 +2525,8 @@ class WorkSessionsCompanion extends UpdateCompanion<WorkSession> {
           ..write('date: $date, ')
           ..write('startTime: $startTime, ')
           ..write('endTime: $endTime, ')
-          ..write('breakMinutes: $breakMinutes')
+          ..write('breakMinutes: $breakMinutes, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -3539,6 +3636,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final ShiftOverridesDao shiftOverridesDao = ShiftOverridesDao(
     this as AppDatabase,
   );
+  late final WorkSessionsDao workSessionsDao = WorkSessionsDao(
+    this as AppDatabase,
+  );
+  late final RevenuesDao revenuesDao = RevenuesDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4245,16 +4346,17 @@ typedef $$RevenuesTableCreateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<int> id,
       required DateTime date,
+      Value<int?> workSessionId,
       required int grossRevenue,
       required int taxExcludedRevenue,
       required int cashAmount,
-      required int cashlessAmount,
-      required int otherAmount,
+      required int cardAmount,
+      required int appAmount,
+      required int ticketAmount,
       required double totalDistance,
       required double occupiedDistance,
       required int ridesCount,
       Value<int?> fuelAmount,
-      Value<String?> photoPath,
       Value<String?> note,
     });
 typedef $$RevenuesTableUpdateCompanionBuilder =
@@ -4263,16 +4365,17 @@ typedef $$RevenuesTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<int> id,
       Value<DateTime> date,
+      Value<int?> workSessionId,
       Value<int> grossRevenue,
       Value<int> taxExcludedRevenue,
       Value<int> cashAmount,
-      Value<int> cashlessAmount,
-      Value<int> otherAmount,
+      Value<int> cardAmount,
+      Value<int> appAmount,
+      Value<int> ticketAmount,
       Value<double> totalDistance,
       Value<double> occupiedDistance,
       Value<int> ridesCount,
       Value<int?> fuelAmount,
-      Value<String?> photoPath,
       Value<String?> note,
     });
 
@@ -4306,6 +4409,11 @@ class $$RevenuesTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
+  ColumnFilters<int> get workSessionId => $composableBuilder(
+    column: $table.workSessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get grossRevenue => $composableBuilder(
     column: $table.grossRevenue,
     builder: (column) => ColumnFilters(column),
@@ -4321,13 +4429,18 @@ class $$RevenuesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get cashlessAmount => $composableBuilder(
-    column: $table.cashlessAmount,
+  ColumnFilters<int> get cardAmount => $composableBuilder(
+    column: $table.cardAmount,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get otherAmount => $composableBuilder(
-    column: $table.otherAmount,
+  ColumnFilters<int> get appAmount => $composableBuilder(
+    column: $table.appAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get ticketAmount => $composableBuilder(
+    column: $table.ticketAmount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4348,11 +4461,6 @@ class $$RevenuesTableFilterComposer
 
   ColumnFilters<int> get fuelAmount => $composableBuilder(
     column: $table.fuelAmount,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get photoPath => $composableBuilder(
-    column: $table.photoPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4391,6 +4499,11 @@ class $$RevenuesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get workSessionId => $composableBuilder(
+    column: $table.workSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get grossRevenue => $composableBuilder(
     column: $table.grossRevenue,
     builder: (column) => ColumnOrderings(column),
@@ -4406,13 +4519,18 @@ class $$RevenuesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get cashlessAmount => $composableBuilder(
-    column: $table.cashlessAmount,
+  ColumnOrderings<int> get cardAmount => $composableBuilder(
+    column: $table.cardAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get otherAmount => $composableBuilder(
-    column: $table.otherAmount,
+  ColumnOrderings<int> get appAmount => $composableBuilder(
+    column: $table.appAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get ticketAmount => $composableBuilder(
+    column: $table.ticketAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4433,11 +4551,6 @@ class $$RevenuesTableOrderingComposer
 
   ColumnOrderings<int> get fuelAmount => $composableBuilder(
     column: $table.fuelAmount,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get photoPath => $composableBuilder(
-    column: $table.photoPath,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4468,6 +4581,11 @@ class $$RevenuesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<DateTime, String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
+  GeneratedColumn<int> get workSessionId => $composableBuilder(
+    column: $table.workSessionId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get grossRevenue => $composableBuilder(
     column: $table.grossRevenue,
     builder: (column) => column,
@@ -4483,13 +4601,16 @@ class $$RevenuesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get cashlessAmount => $composableBuilder(
-    column: $table.cashlessAmount,
+  GeneratedColumn<int> get cardAmount => $composableBuilder(
+    column: $table.cardAmount,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get otherAmount => $composableBuilder(
-    column: $table.otherAmount,
+  GeneratedColumn<int> get appAmount =>
+      $composableBuilder(column: $table.appAmount, builder: (column) => column);
+
+  GeneratedColumn<int> get ticketAmount => $composableBuilder(
+    column: $table.ticketAmount,
     builder: (column) => column,
   );
 
@@ -4512,9 +4633,6 @@ class $$RevenuesTableAnnotationComposer
     column: $table.fuelAmount,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get photoPath =>
-      $composableBuilder(column: $table.photoPath, builder: (column) => column);
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -4552,32 +4670,34 @@ class $$RevenuesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
+                Value<int?> workSessionId = const Value.absent(),
                 Value<int> grossRevenue = const Value.absent(),
                 Value<int> taxExcludedRevenue = const Value.absent(),
                 Value<int> cashAmount = const Value.absent(),
-                Value<int> cashlessAmount = const Value.absent(),
-                Value<int> otherAmount = const Value.absent(),
+                Value<int> cardAmount = const Value.absent(),
+                Value<int> appAmount = const Value.absent(),
+                Value<int> ticketAmount = const Value.absent(),
                 Value<double> totalDistance = const Value.absent(),
                 Value<double> occupiedDistance = const Value.absent(),
                 Value<int> ridesCount = const Value.absent(),
                 Value<int?> fuelAmount = const Value.absent(),
-                Value<String?> photoPath = const Value.absent(),
                 Value<String?> note = const Value.absent(),
               }) => RevenuesCompanion(
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 id: id,
                 date: date,
+                workSessionId: workSessionId,
                 grossRevenue: grossRevenue,
                 taxExcludedRevenue: taxExcludedRevenue,
                 cashAmount: cashAmount,
-                cashlessAmount: cashlessAmount,
-                otherAmount: otherAmount,
+                cardAmount: cardAmount,
+                appAmount: appAmount,
+                ticketAmount: ticketAmount,
                 totalDistance: totalDistance,
                 occupiedDistance: occupiedDistance,
                 ridesCount: ridesCount,
                 fuelAmount: fuelAmount,
-                photoPath: photoPath,
                 note: note,
               ),
           createCompanionCallback:
@@ -4586,32 +4706,34 @@ class $$RevenuesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 required DateTime date,
+                Value<int?> workSessionId = const Value.absent(),
                 required int grossRevenue,
                 required int taxExcludedRevenue,
                 required int cashAmount,
-                required int cashlessAmount,
-                required int otherAmount,
+                required int cardAmount,
+                required int appAmount,
+                required int ticketAmount,
                 required double totalDistance,
                 required double occupiedDistance,
                 required int ridesCount,
                 Value<int?> fuelAmount = const Value.absent(),
-                Value<String?> photoPath = const Value.absent(),
                 Value<String?> note = const Value.absent(),
               }) => RevenuesCompanion.insert(
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 id: id,
                 date: date,
+                workSessionId: workSessionId,
                 grossRevenue: grossRevenue,
                 taxExcludedRevenue: taxExcludedRevenue,
                 cashAmount: cashAmount,
-                cashlessAmount: cashlessAmount,
-                otherAmount: otherAmount,
+                cardAmount: cardAmount,
+                appAmount: appAmount,
+                ticketAmount: ticketAmount,
                 totalDistance: totalDistance,
                 occupiedDistance: occupiedDistance,
                 ridesCount: ridesCount,
                 fuelAmount: fuelAmount,
-                photoPath: photoPath,
                 note: note,
               ),
           withReferenceMapper: (p0) => p0
@@ -4645,6 +4767,7 @@ typedef $$WorkSessionsTableCreateCompanionBuilder =
       required DateTime startTime,
       required DateTime endTime,
       required int breakMinutes,
+      Value<String?> note,
     });
 typedef $$WorkSessionsTableUpdateCompanionBuilder =
     WorkSessionsCompanion Function({
@@ -4655,6 +4778,7 @@ typedef $$WorkSessionsTableUpdateCompanionBuilder =
       Value<DateTime> startTime,
       Value<DateTime> endTime,
       Value<int> breakMinutes,
+      Value<String?> note,
     });
 
 class $$WorkSessionsTableFilterComposer
@@ -4699,6 +4823,11 @@ class $$WorkSessionsTableFilterComposer
 
   ColumnFilters<int> get breakMinutes => $composableBuilder(
     column: $table.breakMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -4746,6 +4875,11 @@ class $$WorkSessionsTableOrderingComposer
     column: $table.breakMinutes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$WorkSessionsTableAnnotationComposer
@@ -4779,6 +4913,9 @@ class $$WorkSessionsTableAnnotationComposer
     column: $table.breakMinutes,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
 }
 
 class $$WorkSessionsTableTableManager
@@ -4819,6 +4956,7 @@ class $$WorkSessionsTableTableManager
                 Value<DateTime> startTime = const Value.absent(),
                 Value<DateTime> endTime = const Value.absent(),
                 Value<int> breakMinutes = const Value.absent(),
+                Value<String?> note = const Value.absent(),
               }) => WorkSessionsCompanion(
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -4827,6 +4965,7 @@ class $$WorkSessionsTableTableManager
                 startTime: startTime,
                 endTime: endTime,
                 breakMinutes: breakMinutes,
+                note: note,
               ),
           createCompanionCallback:
               ({
@@ -4837,6 +4976,7 @@ class $$WorkSessionsTableTableManager
                 required DateTime startTime,
                 required DateTime endTime,
                 required int breakMinutes,
+                Value<String?> note = const Value.absent(),
               }) => WorkSessionsCompanion.insert(
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -4845,6 +4985,7 @@ class $$WorkSessionsTableTableManager
                 startTime: startTime,
                 endTime: endTime,
                 breakMinutes: breakMinutes,
+                note: note,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

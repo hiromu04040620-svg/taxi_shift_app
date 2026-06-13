@@ -90,8 +90,6 @@ class ShiftCycleServiceImpl implements ShiftCycleService {
       if (target.isAfter(validUntil)) return null;
     }
 
-    if (target.isBefore(start)) return null;
-
     final daysDiff = target.difference(start).inDays;
     final cycleIndex = daysDiff % pattern.cycle.length;
 

@@ -52,25 +52,28 @@ class CalendarDayCell extends StatelessWidget {
               ),
             ),
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${date.day}',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: fgColor == Colors.transparent ? null : fgColor,
-                    fontWeight: isToday ? FontWeight.bold : null,
-                  ),
-                ),
-                if (label.isNotEmpty)
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text(
-                    label,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: fgColor,
-                      fontWeight: FontWeight.bold,
+                    '${date.day}',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: fgColor == Colors.transparent ? null : fgColor,
+                      fontWeight: isToday ? FontWeight.bold : null,
                     ),
                   ),
-              ],
+                  if (label.isNotEmpty)
+                    Text(
+                      label,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: fgColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],

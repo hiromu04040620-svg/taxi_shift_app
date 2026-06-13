@@ -41,4 +41,4 @@ final class IsOnboardingCompletedProvider
 }
 
 String _$isOnboardingCompletedHash() =>
-    r'8d52bf50ab5d011b88bc798cc97ba43711181f07';
+    r'4d6700dff32d4b20c23dbd0548f456f2d23482b7';

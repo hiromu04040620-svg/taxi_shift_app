@@ -11,12 +11,12 @@ class RevenueSummaryService {
       return const MonthlySummary(
         totalGrossRevenue: 0,
         totalTaxExcludedRevenue: 0,
-        averageRevenuePerShift: 0.0,
+        averageRevenuePerShift: 0,
         totalShiftsCount: 0,
         totalRidesCount: 0,
-        totalDistance: 0.0,
-        totalOccupiedDistance: 0.0,
-        overallOccupancyRate: 0.0,
+        totalDistance: 0,
+        totalOccupiedDistance: 0,
+        overallOccupancyRate: 0,
         paymentBreakdown: {'cash': 0, 'card': 0, 'app': 0, 'ticket': 0},
       );
     }
@@ -24,8 +24,8 @@ class RevenueSummaryService {
     int totalGross = 0;
     int totalTaxExcluded = 0;
     int totalRides = 0;
-    double totalDistance = 0.0;
-    double totalOccupied = 0.0;
+    double totalDistance = 0;
+    double totalOccupied = 0;
     int cash = 0, card = 0, app = 0, ticket = 0;
 
     for (final r in revenues) {

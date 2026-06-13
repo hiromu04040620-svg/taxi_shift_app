@@ -16,8 +16,6 @@ class RevenueSettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final actions = ref.read(appSettingsControllerProvider.notifier);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,7 +30,9 @@ class RevenueSettingsSection extends ConsumerWidget {
               title: '足切り額（税抜）',
               initialValue: settings.ashikiriAmount,
               suffixText: '円',
-              onSaved: (val) => actions.updateAshikiriAmount(val),
+              onSaved: (val) => ref
+                  .read(appSettingsControllerProvider.notifier)
+                  .updateAshikiriAmount(val),
             );
           },
         ),
@@ -45,7 +45,9 @@ class RevenueSettingsSection extends ConsumerWidget {
               context: context,
               title: '歩合率',
               initialRate: settings.commissionRate,
-              onSaved: (val) => actions.updateCommissionRate(val),
+              onSaved: (val) => ref
+                  .read(appSettingsControllerProvider.notifier)
+                  .updateCommissionRate(val),
             );
           },
         ),
