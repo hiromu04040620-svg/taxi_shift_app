@@ -12,7 +12,7 @@
 
 - [ ] `docs/PRIVACY_POLICY.md` の問い合わせ先を確定
 - [ ] GitHub Pages 等で公開
-- [ ] 公開 URL `https://sasamehiromu.github.io/taxi_shift_app/PRIVACY_POLICY.html` にアクセスできることを確認
+- [ ] 公開 URL `https://hiromu04040620-svg.github.io/taxi_shift_app/PRIVACY_POLICY.html` にアクセスできることを確認
 - [ ] 設定画面の「プライバシーポリシー」導線に URL を接続
 - [ ] App Store Connect の App Privacy に URL を登録
 

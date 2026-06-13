@@ -9,7 +9,7 @@
 - アプリ内課金: 広告非表示（買い切り 300円予定）
 - IAP Product ID: `remove_ads`
 - Bundle ID: `com.sasame.takushiftokun`
-- プライバシーポリシー URL: `https://sasamehiromu.github.io/taxi_shift_app/PRIVACY_POLICY.html`
+- プライバシーポリシー URL: `https://hiromu04040620-svg.github.io/taxi_shift_app/PRIVACY_POLICY.html`
 
 ## プロモーション文
 
