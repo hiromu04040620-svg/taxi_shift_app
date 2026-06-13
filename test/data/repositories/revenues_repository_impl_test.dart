@@ -58,14 +58,4 @@ void main() {
     final invalid = validRevenue.copyWith(occupiedDistance: 300);
     expect(() => repository.create(invalid), throwsArgumentError);
   });
-
-  test('内訳合計と grossRevenue の乖離でエラー（±100円超）', () async {
-    final invalid = validRevenue.copyWith(
-      cashAmount: 20000,
-      cardAmount: 15000,
-      appAmount: 10000,
-      ticketAmount: 10000, // sum is 55000, gross is 50000. Diff = 5000 > 100
-    );
-    expect(() => repository.create(invalid), throwsArgumentError);
-  });
 }

@@ -39,10 +39,10 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
     super.initState();
     _grossController = TextEditingController();
     _taxExcludedController = TextEditingController();
-    _cashController = TextEditingController(text: '0');
-    _cardController = TextEditingController(text: '0');
-    _appController = TextEditingController(text: '0');
-    _ticketController = TextEditingController(text: '0');
+    _cashController = TextEditingController();
+    _cardController = TextEditingController();
+    _appController = TextEditingController();
+    _ticketController = TextEditingController();
     _totalDistanceController = TextEditingController();
     _occupiedDistanceController = TextEditingController();
     _ridesController = TextEditingController();
@@ -109,22 +109,73 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
   }
 
   Future<void> _save() async {
+    final gross = int.tryParse(_grossController.text.replaceAll(',', '')) ?? 0;
+    final taxExcluded =
+        int.tryParse(_taxExcludedController.text.replaceAll(',', '')) ?? 0;
+    final cash = int.tryParse(_cashController.text.replaceAll(',', '')) ?? 0;
+    final card = int.tryParse(_cardController.text.replaceAll(',', '')) ?? 0;
+    final app = int.tryParse(_appController.text.replaceAll(',', '')) ?? 0;
+    final ticket =
+        int.tryParse(_ticketController.text.replaceAll(',', '')) ?? 0;
+    final totalDist =
+        double.tryParse(_totalDistanceController.text.replaceAll(',', '')) ??
+        0.0;
+    final occDist =
+        double.tryParse(_occupiedDistanceController.text.replaceAll(',', '')) ??
+        0.0;
+    final rides = int.tryParse(_ridesController.text.replaceAll(',', '')) ?? 0;
+    final fuel = int.tryParse(_fuelController.text.replaceAll(',', ''));
+
+    final numericSum =
+        gross +
+        taxExcluded +
+        cash +
+        card +
+        app +
+        ticket +
+        totalDist +
+        occDist +
+        rides +
+        (fuel ?? 0);
+
+    if (numericSum == 0 && _noteController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('最低1項目は入力してください')));
+      return;
+    }
+
+    final innerSum = cash + card + app + ticket;
+    if (gross > 0 && innerSum > 0 && innerSum != gross) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('内訳にずれがあります'),
+          content: Text(
+            '内訳の合計（${AppNumberFormat.currency(innerSum)}）が税込総額（${AppNumberFormat.currency(gross)}）と一致しません。このまま保存しますか？',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('修正する'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('このまま保存'),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) {
+        return;
+      }
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final gross = int.tryParse(_grossController.text) ?? 0;
-      final taxExcluded = int.tryParse(_taxExcludedController.text) ?? 0;
-      final cash = int.tryParse(_cashController.text) ?? 0;
-      final card = int.tryParse(_cardController.text) ?? 0;
-      final app = int.tryParse(_appController.text) ?? 0;
-      final ticket = int.tryParse(_ticketController.text) ?? 0;
-      final totalDist = double.tryParse(_totalDistanceController.text) ?? 0.0;
-      final occDist = double.tryParse(_occupiedDistanceController.text) ?? 0.0;
-      final rides = int.tryParse(_ridesController.text) ?? 0;
-      final fuel = int.tryParse(_fuelController.text);
-
       final sessionAsync = ref.read(workSessionForDateProvider(widget.date));
       final sessionId = sessionAsync.value?.id;
 
@@ -224,11 +275,12 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final dateLabel = DateFormat('M月d日の売上', 'ja_JP').format(widget.date);
 
-    final gross = int.tryParse(_grossController.text) ?? 0;
-    final cash = int.tryParse(_cashController.text) ?? 0;
-    final card = int.tryParse(_cardController.text) ?? 0;
-    final app = int.tryParse(_appController.text) ?? 0;
-    final ticket = int.tryParse(_ticketController.text) ?? 0;
+    final gross = int.tryParse(_grossController.text.replaceAll(',', '')) ?? 0;
+    final cash = int.tryParse(_cashController.text.replaceAll(',', '')) ?? 0;
+    final card = int.tryParse(_cardController.text.replaceAll(',', '')) ?? 0;
+    final app = int.tryParse(_appController.text.replaceAll(',', '')) ?? 0;
+    final ticket =
+        int.tryParse(_ticketController.text.replaceAll(',', '')) ?? 0;
     final innerSum = cash + card + app + ticket;
     final diff = innerSum - gross;
 
@@ -286,7 +338,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                           if (!hasFocus) _onGrossUnfocus();
                         },
                         child: LabeledTextField(
-                          label: '総営収',
+                          label: '総営収（任意）',
                           controller: _grossController,
                           keyboardType: TextInputType.number,
                           suffix: '円',
@@ -297,7 +349,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: LabeledTextField(
-                        label: '税抜営収',
+                        label: '税抜営収（任意）',
                         controller: _taxExcludedController,
                         keyboardType: TextInputType.number,
                         suffix: '円',
@@ -324,7 +376,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                       children: [
                         Expanded(
                           child: LabeledTextField(
-                            label: '現金',
+                            label: '現金（任意）',
                             controller: _cashController,
                             keyboardType: TextInputType.number,
                             suffix: '円',
@@ -334,7 +386,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: LabeledTextField(
-                            label: 'クレジット',
+                            label: 'クレジット（任意）',
                             controller: _cardController,
                             keyboardType: TextInputType.number,
                             suffix: '円',
@@ -348,7 +400,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                       children: [
                         Expanded(
                           child: LabeledTextField(
-                            label: '配車アプリ',
+                            label: '配車アプリ（任意）',
                             controller: _appController,
                             keyboardType: TextInputType.number,
                             suffix: '円',
@@ -358,7 +410,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: LabeledTextField(
-                            label: 'チケット',
+                            label: 'チケット（任意）',
                             controller: _ticketController,
                             keyboardType: TextInputType.number,
                             suffix: '円',
@@ -382,7 +434,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                   children: [
                     Expanded(
                       child: LabeledTextField(
-                        label: '総走行距離',
+                        label: '総走行距離（任意）',
                         controller: _totalDistanceController,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
@@ -394,7 +446,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: LabeledTextField(
-                        label: '実車距離',
+                        label: '実車距離（任意）',
                         controller: _occupiedDistanceController,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
@@ -410,7 +462,7 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                   children: [
                     Expanded(
                       child: LabeledTextField(
-                        label: '乗車回数',
+                        label: '乗車回数（任意）',
                         controller: _ridesController,
                         keyboardType: TextInputType.number,
                         suffix: '回',
@@ -437,14 +489,14 @@ class _RevenueSheetState extends ConsumerState<RevenueSheet> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 LabeledTextField(
-                  label: '給油額',
+                  label: '給油額（任意）',
                   controller: _fuelController,
                   keyboardType: TextInputType.number,
                   suffix: '円',
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 LabeledTextField(
-                  label: 'メモ',
+                  label: 'メモ（任意）',
                   controller: _noteController,
                   maxLines: 2,
                 ),

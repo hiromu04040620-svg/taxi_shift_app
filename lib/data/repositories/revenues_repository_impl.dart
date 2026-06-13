@@ -101,12 +101,7 @@ class RevenuesRepositoryImpl implements RevenuesRepository {
       throw ArgumentError('Payment breakdown amounts cannot be negative');
     }
 
-    final paymentSum = revenue.paymentBreakdownSum;
-    if ((paymentSum - revenue.grossRevenue).abs() > 100) {
-      throw ArgumentError(
-        'paymentBreakdownSum must be within 100 of grossRevenue',
-      );
-    }
+    // 内訳誤差のバリデーションは撤廃（UI側で確認ダイアログを出した上で保存を許容する）
 
     if (revenue.totalDistance < 0) {
       throw ArgumentError('totalDistance cannot be negative');
