@@ -35,13 +35,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   void _onPageChanged(DateTime focusedDay) {
     setState(() {
-      _focusedMonth = focusedDay;
+      // 常に月初の1日を保持する
+      _focusedMonth = DateTime(focusedDay.year, focusedDay.month);
+      // UX向上のため、月送り時に選択日も新しい月の1日にリセットする
+      _selectedDate = DateTime(focusedDay.year, focusedDay.month);
     });
   }
 
   void _resetToToday() {
     setState(() {
       final now = DateTime.now();
+      // _focusedMonth は常に月初
       _focusedMonth = DateTime(now.year, now.month);
       _selectedDate = DateTime(now.year, now.month, now.day);
     });

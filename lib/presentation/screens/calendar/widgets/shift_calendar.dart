@@ -24,8 +24,10 @@ class ShiftCalendar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
-    final firstDay = DateTime(focusedMonth.year - 2, focusedMonth.month);
-    final lastDay = DateTime(focusedMonth.year + 2, focusedMonth.month, 0);
+    // TableCalendarの内部インデックス（ページング）のズレ累積を防ぐため、
+    // firstDay / lastDay は動的な値（focusedMonth依存）ではなく、固定の広い範囲を指定する
+    final firstDay = DateTime(2000);
+    final lastDay = DateTime(2100, 12, 31);
 
     final monthArg = (year: focusedMonth.year, month: focusedMonth.month);
     final shiftsAsync = ref.watch(shiftsInMonthProvider(monthArg));
