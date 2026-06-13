@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/design_tokens.dart';
+import '../../providers/ads_provider.dart';
+import '../../widgets/banner_ad_widget.dart';
 import 'widgets/day_detail_panel.dart';
 import 'widgets/shift_calendar.dart';
 import 'widgets/shift_legend.dart';
@@ -93,6 +95,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: ref.watch(adsEnabledProvider)
+          ? const BannerAdWidget()
+          : null,
     );
   }
 }
