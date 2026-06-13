@@ -8,6 +8,7 @@ import '../../../../domain/models/shift_override.dart';
 import '../../../../domain/models/shift_type.dart';
 import '../../../providers/shift_queries_provider.dart';
 import '../../../utils/shift_type_display.dart';
+import 'shift_change_confirm_dialog.dart';
 
 class ShiftOverrideSheet extends ConsumerStatefulWidget {
   const ShiftOverrideSheet({super.key, required this.date});
@@ -59,40 +60,78 @@ class _ShiftOverrideSheetState extends ConsumerState<ShiftOverrideSheet> {
   Future<void> _save() async {
     if (_selectedType == null) return;
 
+    final action = await showDialog<ShiftChangeAction>(
+      context: context,
+      builder: (context) => ShiftChangeConfirmDialog(
+        date: widget.date,
+        selectedType: _selectedType!,
+      ),
+    );
+
+    if (action == null || action == ShiftChangeAction.cancel) return;
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final repo = ref.read(shiftOverridesRepositoryProvider);
+      final overridesRepo = ref.read(shiftOverridesRepositoryProvider);
+      final patternsRepo = ref.read(shiftPatternsRepositoryProvider);
 
-      if (_existingOverride != null) {
-        final updated = _existingOverride!.copyWith(
-          shiftType: _selectedType!,
-          reason: _noteController.text.trim().isEmpty
-              ? null
-              : _noteController.text.trim(),
-        );
-        await repo.upsertSingle(updated);
-      } else {
-        final newOverride = ShiftOverride(
-          id: 0,
-          date: widget.date,
-          shiftType: _selectedType!,
-          reason: _noteController.text.trim().isEmpty
-              ? null
-              : _noteController.text.trim(),
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        await repo.upsertSingle(newOverride);
+      if (action == ShiftChangeAction.override) {
+        if (_existingOverride != null) {
+          final updated = _existingOverride!.copyWith(
+            shiftType: _selectedType!,
+            reason: _noteController.text.trim().isEmpty
+                ? null
+                : _noteController.text.trim(),
+          );
+          await overridesRepo.upsertSingle(updated);
+        } else {
+          final newOverride = ShiftOverride(
+            id: 0,
+            date: widget.date,
+            shiftType: _selectedType!,
+            reason: _noteController.text.trim().isEmpty
+                ? null
+                : _noteController.text.trim(),
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          await overridesRepo.upsertSingle(newOverride);
+        }
+      } else if (action == ShiftChangeAction.cycle) {
+        final activePattern = await patternsRepo.getActiveAt(widget.date);
+        if (activePattern != null) {
+          final cycleIndex = activePattern.cycle.indexOf(_selectedType!);
+          if (cycleIndex == -1) {
+            throw ArgumentError('選択したシフト種類は現在のサイクルに含まれていません。');
+          }
+
+          final newStartDate = widget.date.subtract(Duration(days: cycleIndex));
+          final updatedPattern = activePattern.copyWith(
+            startDate: newStartDate,
+          );
+          await patternsRepo.update(updatedPattern);
+
+          final existing = await overridesRepo.getByDate(widget.date);
+          if (existing != null) {
+            await overridesRepo.deleteSingle(existing.id);
+          }
+        } else {
+          throw StateError('有効なシフトパターンが見つかりません。');
+        }
       }
 
       ref.invalidate(shiftTypeForDateProvider(widget.date));
       ref.invalidate(shiftsInMonthProvider);
+      ref.invalidate(activeShiftPatternProvider);
 
       if (mounted) {
         Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('シフトを変更しました')));
       }
     } catch (e) {
       if (mounted) {
