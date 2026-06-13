@@ -40,8 +40,8 @@ class ShiftCycleServiceImpl implements ShiftCycleService {
     final result = <DateTime, ShiftType>{};
     if (from.isAfter(to)) return result;
 
-    // パフォーマンスのため一括取得
-    final patterns = await _patternsRepository.getActiveBetween(from, to);
+    // 過去方向への無限展開をサポートするため、期間絞り込みではなくアクティブな全パターンを取得する
+    final patterns = await _patternsRepository.getActive();
     final overrides = await _overridesRepository.getBetween(from, to);
 
     final overridesMap = {
@@ -81,10 +81,7 @@ class ShiftCycleServiceImpl implements ShiftCycleService {
     final target = _dateOnly(date);
     final start = _dateOnly(pattern.startDate);
 
-    // validity check
-    final validFrom = _dateOnly(pattern.validFrom);
-    if (target.isBefore(validFrom)) return null;
-
+    // validFromより前をnullにする制限を撤廃（_findActivePattern側で過去への適用を許容しているため）
     if (pattern.validUntil != null) {
       final validUntil = _dateOnly(pattern.validUntil!);
       if (target.isAfter(validUntil)) return null;
@@ -99,8 +96,15 @@ class ShiftCycleServiceImpl implements ShiftCycleService {
   DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
   ShiftPattern? _findActivePattern(List<ShiftPattern> patterns, DateTime date) {
+    if (patterns.isEmpty) return null;
+
     final target = _dateOnly(date);
-    for (final p in patterns) {
+
+    // validFrom の古い順にソート
+    final sorted = List<ShiftPattern>.from(patterns)
+      ..sort((a, b) => a.validFrom.compareTo(b.validFrom));
+
+    for (final p in sorted) {
       final validFrom = _dateOnly(p.validFrom);
       final validUntil = p.validUntil != null ? _dateOnly(p.validUntil!) : null;
 
@@ -109,6 +113,14 @@ class ShiftCycleServiceImpl implements ShiftCycleService {
         return p;
       }
     }
+
+    // どのパターンにも該当しなかった場合（＝最も古いパターンの validFrom より前の場合）、
+    // 起点日から過去方向へサイクルを無限展開するために、最も古いパターンを返す。
+    final oldest = sorted.first;
+    if (target.isBefore(_dateOnly(oldest.validFrom))) {
+      return oldest;
+    }
+
     return null;
   }
 }

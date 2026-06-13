@@ -11,6 +11,7 @@ import 'package:taxi_shift_app/domain/services/shift_cycle_service.dart';
 
 class FakeShiftPatternsRepository implements ShiftPatternsRepository {
   ShiftPattern? activeAtReturn;
+  List<ShiftPattern> activeReturn = [];
   List<ShiftPattern> activeBetweenReturn = [];
 
   @override
@@ -19,7 +20,7 @@ class FakeShiftPatternsRepository implements ShiftPatternsRepository {
   @override
   Future<void> deactivate(int id) => throw UnimplementedError();
   @override
-  Future<List<ShiftPattern>> getActive() => throw UnimplementedError();
+  Future<List<ShiftPattern>> getActive() async => activeReturn;
   @override
   Future<ShiftPattern?> getActiveAt(DateTime date) async => activeAtReturn;
   @override
@@ -106,10 +107,12 @@ void main() {
     );
   });
 
-  test('resolveByPattern returns null before startDate', () async {
+  test('resolveByPattern returns cycle for past dates', () async {
+    // 過去方向へもサイクル展開されることを確認
+    // startDate は 2023-01-01。2022-12-31は前日なので、サイクル[workDay, afterDuty, dayOff] の最後になるはず
     expect(
       await service.resolveByPattern(defaultPattern, DateTime(2022, 12, 31)),
-      isNull,
+      ShiftType.dayOff,
     );
   });
 
@@ -173,7 +176,7 @@ void main() {
 
   test('resolveDateRange works over long range boundaries', () async {
     fakeOverridesRepo.betweenReturn = [];
-    fakePatternsRepo.activeBetweenReturn = [defaultPattern];
+    fakePatternsRepo.activeReturn = [defaultPattern];
 
     final range = await service.resolveDateRange(
       DateTime(2023),
