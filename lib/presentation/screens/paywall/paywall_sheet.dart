@@ -111,7 +111,7 @@ class PaywallSheet extends ConsumerWidget {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Column(
                     children: [
-                      Text('買い切り予定', style: textTheme.labelLarge),
+                      Text('買い切り', style: textTheme.labelLarge),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         purchase.priceLabel,
@@ -163,10 +163,18 @@ class PaywallSheet extends ConsumerWidget {
                       : null,
                   icon: const Icon(Icons.shopping_bag),
                   label: purchase.isLoading
-                      ? const Text('確認中...')
+                      ? const Text('商品情報を確認中...')
                       : const Text('購入して広告を非表示'),
                 ),
                 const SizedBox(height: AppSpacing.sm),
+                if (!purchase.canPurchase && !purchase.isLoading) ...[
+                  OutlinedButton.icon(
+                    onPressed: purchase.loadProducts,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('商品情報を再取得'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
                 OutlinedButton.icon(
                   onPressed: purchase.isLoading
                       ? null

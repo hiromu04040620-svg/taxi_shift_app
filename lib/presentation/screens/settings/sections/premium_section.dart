@@ -22,7 +22,7 @@ class PremiumSection extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
           ),
           title: isPremium ? '広告非表示は有効です' : '広告を非表示',
-          subtitle: isPremium ? 'カレンダーとサマリーの広告は表示されません' : '買い切り予定 300円',
+          subtitle: isPremium ? 'カレンダーとサマリーの広告は表示されません' : '買い切り 300円',
           trailing: const Icon(Icons.arrow_forward_ios, size: AppIconSize.sm),
           onTap: () {
             showModalBottomSheet<void>(
