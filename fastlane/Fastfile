@@ -1,10 +1,10 @@
 default_platform(:ios)
 
 APP_IDENTIFIER = "com.sasame.takushiftokun"
-IPA_PATH = "../build/ios/ipa/TaxiShift.ipa"
+IPA_PATH = File.expand_path("../build/ios/ipa/TaxiShift.ipa", __dir__)
 
 def flutter_version
-  pubspec = File.read("../pubspec.yaml")
+  pubspec = File.read(File.expand_path("../pubspec.yaml", __dir__))
   match = pubspec.match(/^version:\s*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)/)
   UI.user_error!("pubspec.yaml の version は 1.0.0+3 の形式にしてください") unless match
 
