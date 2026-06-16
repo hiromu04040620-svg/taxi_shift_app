@@ -25,8 +25,11 @@
 
 ## 4. 広告非表示 IAP
 
+- [ ] App Store Connect の Business で Paid Apps Agreement が In Effect になっていることを確認
 - [ ] App Store Connect で Non-Consumable 商品を作成
 - [ ] Product ID は `remove_ads` にする
+- [ ] 価格、表示名、説明、スクリーンショット、Cleared for Sale が未設定でないことを確認
+- [ ] 初回 IAP の場合、アプリバージョンの「アプリ内課金」に `remove_ads` を紐づけて一緒に提出
 - [ ] 購入、復元、失敗、キャンセルの処理を実装
 - [ ] 購入成功時に `isPremium=true` へ更新
 - [ ] StoreKit / Sandbox で購入・復元を実機確認
@@ -58,3 +61,10 @@
 - [ ] 課金なしでも主要機能が使えることを確認
 - [ ] ペイウォールが操作を過度に妨げないことを確認
 - [ ] 審査メモに広告非表示 IAP の説明を記載
+
+## 8. App Review 再提出対応
+
+- [ ] Support URL `https://hiromu04040620-svg.github.io/taxi_shift_app/` に問い合わせ方法が表示されることを確認
+- [ ] 審査対象ビルドでペイウォールの商品情報が `remove_ads` として読み込まれることを Sandbox で確認
+- [ ] App Store Connect の IAP 商品状態、Paid Apps Agreement、価格、Cleared for Sale を再確認
+- [ ] 再提出メモに「Support URL を更新し、IAP 商品設定と Sandbox 読み込みを確認した」と記載

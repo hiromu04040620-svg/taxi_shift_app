@@ -10,15 +10,16 @@ import 'section_header.dart';
 class AboutSection extends StatelessWidget {
   const AboutSection({super.key});
 
-  Future<void> _openPrivacyPolicy(BuildContext context) async {
-    final opened = await launchUrl(
-      AppLinks.privacyPolicy,
-      mode: LaunchMode.externalApplication,
-    );
+  Future<void> _openUri(
+    BuildContext context,
+    Uri uri,
+    String failedMessage,
+  ) async {
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('プライバシーポリシーを開けませんでした')));
+      ).showSnackBar(SnackBar(content: Text(failedMessage)));
     }
   }
 
@@ -41,25 +42,29 @@ class AboutSection extends StatelessWidget {
           },
         ),
         SettingTile(
+          title: 'サポート',
+          subtitle: 'お問い合わせ・よくある確認事項',
+          trailing: const Icon(Icons.open_in_new, size: AppIconSize.sm),
+          onTap: () => _openUri(context, AppLinks.support, 'サポートページを開けませんでした'),
+        ),
+        SettingTile(
+          title: 'お問い合わせ',
+          subtitle: 'メールで連絡',
+          trailing: const Icon(Icons.mail_outline, size: AppIconSize.sm),
+          onTap: () =>
+              _openUri(context, AppLinks.supportEmail, 'メールアプリを開けませんでした'),
+        ),
+        SettingTile(
           title: 'プライバシーポリシー',
           trailing: const Icon(Icons.open_in_new, size: AppIconSize.sm),
-          onTap: () => _openPrivacyPolicy(context),
+          onTap: () =>
+              _openUri(context, AppLinks.privacyPolicy, 'プライバシーポリシーを開けませんでした'),
         ),
         SettingTile(
           title: 'ライセンス',
           trailing: const Icon(Icons.arrow_forward_ios, size: AppIconSize.sm),
           onTap: () =>
               showLicensePage(context: context, applicationName: 'TaxiShift'),
-        ),
-        const Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
-          child: Center(
-            child: Text(
-              'This application is entirely authored by Antigravity and the user.',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-          ),
         ),
       ],
     );

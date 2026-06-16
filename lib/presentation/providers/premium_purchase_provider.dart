@@ -8,15 +8,66 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../application/providers/app_settings_controller.dart';
 import '../../core/config/premium_config.dart';
 
+final premiumStoreProvider = Provider<PremiumStore>(
+  (ref) => InAppPurchasePremiumStore(InAppPurchase.instance),
+);
+
 final premiumPurchaseControllerProvider =
     ChangeNotifierProvider<PremiumPurchaseController>(
-      (ref) => PremiumPurchaseController(ref),
+      (ref) => PremiumPurchaseController(
+        ref,
+        store: ref.watch(premiumStoreProvider),
+      ),
     );
 
+abstract class PremiumStore {
+  Stream<List<PurchaseDetails>> get purchaseStream;
+
+  Future<bool> isAvailable();
+
+  Future<ProductDetailsResponse> queryProductDetails(Set<String> identifiers);
+
+  Future<bool> buyNonConsumable(ProductDetails product);
+
+  Future<void> restorePurchases();
+
+  Future<void> completePurchase(PurchaseDetails purchase);
+}
+
+class InAppPurchasePremiumStore implements PremiumStore {
+  InAppPurchasePremiumStore(this._iap);
+
+  final InAppPurchase _iap;
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream => _iap.purchaseStream;
+
+  @override
+  Future<bool> isAvailable() => _iap.isAvailable();
+
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(Set<String> identifiers) =>
+      _iap.queryProductDetails(identifiers);
+
+  @override
+  Future<bool> buyNonConsumable(ProductDetails product) {
+    return _iap.buyNonConsumable(
+      purchaseParam: PurchaseParam(productDetails: product),
+    );
+  }
+
+  @override
+  Future<void> restorePurchases() => _iap.restorePurchases();
+
+  @override
+  Future<void> completePurchase(PurchaseDetails purchase) {
+    return _iap.completePurchase(purchase);
+  }
+}
+
 class PremiumPurchaseController extends ChangeNotifier {
-  PremiumPurchaseController(this._ref, {InAppPurchase? inAppPurchase})
-    : _iap = inAppPurchase ?? InAppPurchase.instance {
-    _subscription = _iap.purchaseStream.listen(
+  PremiumPurchaseController(this._ref, {required this._store}) {
+    _subscription = _store.purchaseStream.listen(
       _handlePurchaseUpdates,
       onError: (Object error) {
         _isLoading = false;
@@ -28,7 +79,7 @@ class PremiumPurchaseController extends ChangeNotifier {
   }
 
   final Ref _ref;
-  final InAppPurchase _iap;
+  final PremiumStore _store;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
   bool _isLoading = false;
@@ -53,33 +104,54 @@ class PremiumPurchaseController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _isStoreAvailable = await _iap.isAvailable();
+      _isStoreAvailable = await _store.isAvailable();
       if (!_isStoreAvailable) {
+        _removeAdsProduct = null;
         _message = 'ストアに接続できません';
         return;
       }
 
-      final response = await _iap.queryProductDetails({
-        PremiumConfig.removeAdsProductId,
-      });
-      if (response.error != null) {
-        _message = '商品情報の取得に失敗しました';
-        return;
-      }
-      if (response.notFoundIDs.contains(PremiumConfig.removeAdsProductId)) {
-        _message = '広告非表示の商品がまだストアに登録されていません';
+      final response = await _store.queryProductDetails(
+        PremiumConfig.removeAdsProductIds,
+      );
+      final product = _findRemoveAdsProduct(response.productDetails);
+      if (product != null) {
+        _removeAdsProduct = product;
         return;
       }
 
-      _removeAdsProduct = response.productDetails.firstWhere(
-        (product) => product.id == PremiumConfig.removeAdsProductId,
-      );
-    } catch (_) {
-      _message = '商品情報の取得に失敗しました';
+      _removeAdsProduct = null;
+      if (response.error != null) {
+        debugPrint('Remove ads product query failed: ${response.error}');
+        _message = '商品情報の取得に失敗しました。時間をおいて再取得してください';
+        return;
+      }
+
+      final notFoundIds = response.notFoundIDs.toSet();
+      if (PremiumConfig.removeAdsProductIds.every(notFoundIds.contains) ||
+          response.productDetails.isEmpty) {
+        _message = '広告非表示の商品を取得できません。ストア設定を確認してください';
+        return;
+      }
+
+      _message = '広告非表示の商品情報が見つかりません';
+    } catch (error, stackTrace) {
+      debugPrint('Remove ads product query failed: $error\n$stackTrace');
+      _removeAdsProduct = null;
+      _message = '商品情報の取得に失敗しました。時間をおいて再取得してください';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  ProductDetails? _findRemoveAdsProduct(List<ProductDetails> products) {
+    for (final id in PremiumConfig.removeAdsProductIds) {
+      for (final product in products) {
+        if (product.id == id) return product;
+      }
+    }
+    return null;
   }
 
   Future<String?> buyRemoveAds() async {
@@ -96,9 +168,7 @@ class PremiumPurchaseController extends ChangeNotifier {
     _message = null;
     notifyListeners();
 
-    final started = await _iap.buyNonConsumable(
-      purchaseParam: PurchaseParam(productDetails: product),
-    );
+    final started = await _store.buyNonConsumable(product);
     if (!started) {
       _isLoading = false;
       _message = '購入処理を開始できませんでした';
@@ -116,7 +186,7 @@ class PremiumPurchaseController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _iap.restorePurchases();
+      await _store.restorePurchases();
       _message = '購入情報を確認しています';
       return _message;
     } catch (_) {
@@ -129,10 +199,8 @@ class PremiumPurchaseController extends ChangeNotifier {
 
   Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
-      if (purchase.productID != PremiumConfig.removeAdsProductId) {
-        if (purchase.pendingCompletePurchase) {
-          await _iap.completePurchase(purchase);
-        }
+      if (!PremiumConfig.removeAdsProductIds.contains(purchase.productID)) {
+        await _completePurchaseIfNeeded(purchase);
         continue;
       }
 
@@ -159,11 +227,19 @@ class PremiumPurchaseController extends ChangeNotifier {
           break;
       }
 
-      if (purchase.pendingCompletePurchase) {
-        await _iap.completePurchase(purchase);
-      }
+      await _completePurchaseIfNeeded(purchase);
     }
     notifyListeners();
+  }
+
+  Future<void> _completePurchaseIfNeeded(PurchaseDetails purchase) async {
+    if (!purchase.pendingCompletePurchase) return;
+
+    try {
+      await _store.completePurchase(purchase);
+    } catch (error, stackTrace) {
+      debugPrint('Failed to complete purchase: $error\n$stackTrace');
+    }
   }
 
   @override
