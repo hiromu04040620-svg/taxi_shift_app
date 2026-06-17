@@ -11,7 +11,7 @@ void main() {
     final store = FakePremiumStore(
       response: ProductDetailsResponse(
         productDetails: [productDetails(PremiumConfig.removeAdsProductId)],
-        notFoundIDs: [PremiumConfig.qualifiedRemoveAdsProductId],
+        notFoundIDs: [],
       ),
     );
     final container = ProviderContainer(
@@ -33,13 +33,11 @@ void main() {
     expect(controller.message, isNull);
   });
 
-  test('バンドルID付きの商品IDでも購入可能にする', () async {
+  test('App Store Connect と同じ remove_ads のみを問い合わせる', () async {
     final store = FakePremiumStore(
       response: ProductDetailsResponse(
-        productDetails: [
-          productDetails(PremiumConfig.qualifiedRemoveAdsProductId),
-        ],
-        notFoundIDs: [PremiumConfig.removeAdsProductId],
+        productDetails: [productDetails(PremiumConfig.removeAdsProductId)],
+        notFoundIDs: [],
       ),
     );
     final container = ProviderContainer(
@@ -52,10 +50,8 @@ void main() {
     await waitForIdle(controller);
 
     expect(controller.canPurchase, isTrue);
-    expect(
-      controller.removeAdsProduct?.id,
-      PremiumConfig.qualifiedRemoveAdsProductId,
-    );
+    expect(store.queriedIds, {PremiumConfig.removeAdsProductId});
+    expect(controller.removeAdsProduct?.id, PremiumConfig.removeAdsProductId);
   });
 
   test('商品が見つからない場合はストア設定確認メッセージを表示する', () async {
@@ -83,7 +79,7 @@ void main() {
     final store = FakePremiumStore(
       response: ProductDetailsResponse(
         productDetails: [product],
-        notFoundIDs: [PremiumConfig.qualifiedRemoveAdsProductId],
+        notFoundIDs: [],
       ),
     );
     final container = ProviderContainer(

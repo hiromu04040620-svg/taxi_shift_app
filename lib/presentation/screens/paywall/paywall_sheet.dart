@@ -153,14 +153,14 @@ class PaywallSheet extends ConsumerWidget {
                 )
               else ...[
                 FilledButton.icon(
-                  onPressed: purchase.canPurchase
-                      ? () async {
-                          final message = await purchase.buyRemoveAds();
-                          if (context.mounted) {
-                            _showMessage(context, message);
-                          }
-                        }
-                      : null,
+                  onPressed: () async {
+                    final message = purchase.isLoading
+                        ? '商品情報を確認しています。数秒後にもう一度お試しください'
+                        : await purchase.buyRemoveAds();
+                    if (context.mounted) {
+                      _showMessage(context, message);
+                    }
+                  },
                   icon: const Icon(Icons.shopping_bag),
                   label: purchase.isLoading
                       ? const Text('商品情報を確認中...')
