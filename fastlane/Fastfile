@@ -1,5 +1,7 @@
 default_platform(:ios)
 
+require "fileutils"
+
 APP_IDENTIFIER = "com.sasame.takushiftokun"
 IPA_PATH = File.expand_path("../build/ios/ipa/TaxiShift.ipa", __dir__)
 
@@ -49,11 +51,13 @@ platform :ios do
   desc "Build App Store IPA from Flutter pubspec version"
   lane :build_ipa do
     version = flutter_version
+    FileUtils.rm_rf(File.dirname(IPA_PATH))
     sh(
       "flutter build ipa --release " \
       "--build-name=#{version[:name]} " \
       "--build-number=#{version[:number]}"
     )
+    UI.user_error!("IPA was not generated at #{IPA_PATH}") unless File.exist?(IPA_PATH)
     UI.success("Built #{IPA_PATH}")
   end
 
