@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/config/premium_config.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../domain/models/improvement_warning.dart';
 import '../../../../domain/models/shift_type.dart';
@@ -25,6 +26,8 @@ class DayDetailPanel extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
+    if (!PremiumConfig.monetizationEnabled) return;
+
     final settings = ref.read(appSettingsProvider).value;
     if (settings?.isPremium == true) return;
     final promptSession = ref.read(paywallPromptSessionProvider);

@@ -18,7 +18,7 @@ void main() {
     customLabels: {},
   );
 
-  test('無料ユーザーは広告表示が有効', () {
+  test('初回審査向けに無料ユーザーでも広告表示は無効', () {
     final container = ProviderContainer(
       overrides: [
         appSettingsProvider.overrideWithValue(const AsyncData(freeSettings)),
@@ -26,7 +26,7 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    expect(container.read(adsEnabledProvider), true);
+    expect(container.read(adsEnabledProvider), false);
   });
 
   test('プレミアムユーザーは広告表示が無効', () async {
