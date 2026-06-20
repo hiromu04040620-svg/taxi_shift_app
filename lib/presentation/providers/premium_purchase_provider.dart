@@ -168,10 +168,21 @@ class PremiumPurchaseController extends ChangeNotifier {
     _message = null;
     notifyListeners();
 
-    final started = await _store.buyNonConsumable(product);
-    if (!started) {
+    try {
+      final started = await _store.buyNonConsumable(product);
+      if (!started) {
+        _isLoading = false;
+        _message = '購入処理を開始できませんでした。購入済みの場合は購入を復元してください';
+        notifyListeners();
+        return _message;
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Remove ads purchase failed to start: $error\n$stackTrace');
+      final restoreStarted = await _restoreAfterPurchaseStartFailure();
       _isLoading = false;
-      _message = '購入処理を開始できませんでした';
+      _message = restoreStarted
+          ? '購入処理でエラーが発生しました。購入済みの場合は復元結果を確認しています'
+          : '購入処理を開始できませんでした。時間をおいて再試行するか、購入済みの場合は購入を復元してください';
       notifyListeners();
       return _message;
     }
@@ -187,9 +198,12 @@ class PremiumPurchaseController extends ChangeNotifier {
 
     try {
       await _store.restorePurchases();
-      _message = '購入情報を確認しています';
+      _isLoading = false;
+      _message = '購入情報を確認しました。購入済みの場合は広告非表示が有効になります';
+      notifyListeners();
       return _message;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('Remove ads restore failed: $error\n$stackTrace');
       _isLoading = false;
       _message = '購入の復元に失敗しました';
       notifyListeners();
@@ -218,8 +232,10 @@ class PremiumPurchaseController extends ChangeNotifier {
           _message = '広告非表示が有効になりました';
           break;
         case PurchaseStatus.error:
+          debugPrint('Remove ads purchase status error: ${purchase.error}');
+          await _restoreAfterPurchaseStartFailure();
           _isLoading = false;
-          _message = purchase.error?.message ?? '購入処理に失敗しました';
+          _message = _purchaseErrorMessage();
           break;
         case PurchaseStatus.canceled:
           _isLoading = false;
@@ -231,6 +247,20 @@ class PremiumPurchaseController extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  Future<bool> _restoreAfterPurchaseStartFailure() async {
+    try {
+      await _store.restorePurchases();
+      return true;
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Restore after purchase start failure failed: $error\n$stackTrace',
+      );
+      return false;
+    }
+  }
+
+  String _purchaseErrorMessage() => '購入処理でエラーが発生しました。購入済みの場合は購入を復元してください';
 
   Future<void> _completePurchaseIfNeeded(PurchaseDetails purchase) async {
     if (!purchase.pendingCompletePurchase) return;
