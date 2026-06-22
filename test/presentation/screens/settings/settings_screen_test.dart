@@ -105,7 +105,7 @@ void main() {
     );
   }
 
-  testWidgets('初回審査向けの設定セクションが表示される', (tester) async {
+  testWidgets('設定セクションが表示される', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -117,7 +117,7 @@ void main() {
     expect(find.text('外観'), findsOneWidget);
     expect(find.text('勤務'), findsOneWidget);
     expect(find.text('売上'), findsOneWidget);
-    expect(find.text('プレミアム'), findsNothing);
+    expect(find.text('プレミアム'), findsOneWidget);
     expect(find.text('シフトパターン'), findsOneWidget);
     expect(find.text('データ管理'), findsOneWidget);
     expect(find.text('アプリ情報'), findsOneWidget);

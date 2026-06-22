@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/app_settings_queries_provider.dart';
 import 'sections/about_section.dart';
 import 'sections/data_management_section.dart';
+import 'sections/premium_section.dart';
 import 'sections/revenue_settings_section.dart';
 import 'sections/shift_pattern_settings_section.dart';
 import 'sections/theme_settings_section.dart';
@@ -27,6 +28,8 @@ class SettingsScreen extends ConsumerWidget {
               WorkSettingsSection(settings: settings),
               const Divider(),
               RevenueSettingsSection(settings: settings),
+              const Divider(),
+              PremiumSection(settings: settings),
               const Divider(),
               const ShiftPatternSettingsSection(),
               const Divider(),
