@@ -66,5 +66,13 @@ void main() {
     expect(find.text('売上'), findsWidgets);
     expect(find.text('勤務'), findsWidgets);
     expect(find.text('法令'), findsWidgets);
+
+    await tester.tap(find.widgetWithText(Tab, '法令'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('重大'), findsOneWidget);
+    expect(find.text('注意'), findsOneWidget);
+    expect(find.text('Critical'), findsNothing);
+    expect(find.text('Warning'), findsNothing);
   });
 }

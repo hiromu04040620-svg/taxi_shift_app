@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/design_tokens.dart';
 import '../../providers/app_settings_queries_provider.dart';
+import '../../widgets/constrained_list_view.dart';
 import 'sections/about_section.dart';
 import 'sections/data_management_section.dart';
 import 'sections/premium_section.dart';
@@ -21,15 +23,17 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('設定')),
       body: appSettingsAsync.when(
         data: (settings) {
-          return ListView(
+          return ConstrainedListView(
+            maxWidth: AppLayout.contentMaxWidth,
+            padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
             children: [
               ThemeSettingsSection(settings: settings),
+              const Divider(),
+              PremiumSection(settings: settings),
               const Divider(),
               WorkSettingsSection(settings: settings),
               const Divider(),
               RevenueSettingsSection(settings: settings),
-              const Divider(),
-              PremiumSection(settings: settings),
               const Divider(),
               const ShiftPatternSettingsSection(),
               const Divider(),

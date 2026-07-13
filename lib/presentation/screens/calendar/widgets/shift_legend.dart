@@ -26,27 +26,29 @@ class ShiftLegend extends StatelessWidget {
           final fullLabel = ShiftTypeDisplay.fullLabel(type);
 
           return Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: Chip(
-              backgroundColor: bgColor,
-              side: BorderSide.none,
-              labelPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xs,
-              ),
-              avatar: CircleAvatar(
-                backgroundColor: fgColor.withValues(alpha: 0.2),
-                child: Text(
-                  shortLabel,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: fgColor,
-                    fontWeight: FontWeight.bold,
+            padding: const EdgeInsets.only(right: AppSpacing.md),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Material(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  child: SizedBox.square(
+                    dimension: AppIconSize.md,
+                    child: Center(
+                      child: Text(
+                        shortLabel,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: fgColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              label: Text(
-                fullLabel,
-                style: textTheme.labelMedium?.copyWith(color: fgColor),
-              ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(fullLabel, style: textTheme.labelMedium),
+              ],
             ),
           );
         }).toList(),

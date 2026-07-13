@@ -382,57 +382,47 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('出庫時刻', style: textTheme.labelLarge),
-                  const SizedBox(height: AppSpacing.xs),
-                  OutlinedButton.icon(
-                    onPressed: () => _selectTime(true),
-                    icon: const Icon(Icons.access_time),
-                    label: Text(
-                      '${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}',
-                    ),
-                  ),
-                ],
+        _ResponsiveFieldPair(
+          first: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('出庫時刻', style: textTheme.labelLarge),
+              const SizedBox(height: AppSpacing.xs),
+              OutlinedButton.icon(
+                onPressed: () => _selectTime(true),
+                icon: const Icon(Icons.access_time),
+                label: Text(
+                  '${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}',
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('入庫時刻', style: textTheme.labelLarge),
-                  const SizedBox(height: AppSpacing.xs),
-                  OutlinedButton.icon(
-                    onPressed: () => _selectTime(false),
-                    icon: const Icon(Icons.access_time),
-                    label: Text(
-                      '${_endTime.hour.toString().padLeft(2, '0')}:${_endTime.minute.toString().padLeft(2, '0')}',
-                    ),
-                  ),
-                ],
+            ],
+          ),
+          second: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('入庫時刻', style: textTheme.labelLarge),
+              const SizedBox(height: AppSpacing.xs),
+              OutlinedButton.icon(
+                onPressed: () => _selectTime(false),
+                icon: const Icon(Icons.access_time),
+                label: Text(
+                  '${_endTime.hour.toString().padLeft(2, '0')}:${_endTime.minute.toString().padLeft(2, '0')}',
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Text('翌日にまたぐ'),
-            Switch(
-              value: _endsNextDay,
-              onChanged: (val) {
-                setState(() {
-                  _endsNextDay = val;
-                });
-              },
-            ),
-          ],
+        SwitchListTile(
+          title: const Text('翌日にまたぐ'),
+          value: _endsNextDay,
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          onChanged: (value) {
+            setState(() {
+              _endsNextDay = value;
+            });
+          },
         ),
         const SizedBox(height: AppSpacing.sm),
         LabeledTextField(
@@ -459,123 +449,83 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: LabeledTextField(
-                label: '総営収（任意）',
-                controller: _grossController,
-                keyboardType: TextInputType.number,
-                suffix: '円',
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: LabeledTextField(
-                label: '税抜営収（任意）',
-                controller: _taxExcludedController,
-                keyboardType: TextInputType.number,
-                suffix: '円',
-              ),
-            ),
-          ],
+        _ResponsiveFieldPair(
+          first: LabeledTextField(
+            label: '総営収（任意）',
+            controller: _grossController,
+            keyboardType: TextInputType.number,
+            suffix: '円',
+          ),
+          second: LabeledTextField(
+            label: '税抜営収（任意）',
+            controller: _taxExcludedController,
+            keyboardType: TextInputType.number,
+            suffix: '円',
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         Text('売上内訳', style: textTheme.labelLarge),
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: LabeledTextField(
-                label: '現金（任意）',
-                controller: _cashController,
-                keyboardType: TextInputType.number,
-                suffix: '円',
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: LabeledTextField(
-                label: 'クレジット（任意）',
-                controller: _cardController,
-                keyboardType: TextInputType.number,
-                suffix: '円',
-              ),
-            ),
-          ],
+        _ResponsiveFieldPair(
+          first: LabeledTextField(
+            label: '現金（任意）',
+            controller: _cashController,
+            keyboardType: TextInputType.number,
+            suffix: '円',
+          ),
+          second: LabeledTextField(
+            label: 'クレジット（任意）',
+            controller: _cardController,
+            keyboardType: TextInputType.number,
+            suffix: '円',
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: LabeledTextField(
-                label: '配車アプリ（任意）',
-                controller: _appController,
-                keyboardType: TextInputType.number,
-                suffix: '円',
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: LabeledTextField(
-                label: 'チケット（任意）',
-                controller: _ticketController,
-                keyboardType: TextInputType.number,
-                suffix: '円',
-              ),
-            ),
-          ],
+        _ResponsiveFieldPair(
+          first: LabeledTextField(
+            label: '配車アプリ（任意）',
+            controller: _appController,
+            keyboardType: TextInputType.number,
+            suffix: '円',
+          ),
+          second: LabeledTextField(
+            label: 'チケット（任意）',
+            controller: _ticketController,
+            keyboardType: TextInputType.number,
+            suffix: '円',
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         Text('運行データ', style: textTheme.labelLarge),
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: LabeledTextField(
-                label: '総走行距離（任意）',
-                controller: _totalDistanceController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                suffix: 'km',
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: LabeledTextField(
-                label: '実車距離（任意）',
-                controller: _occupiedDistanceController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                suffix: 'km',
-              ),
-            ),
-          ],
+        _ResponsiveFieldPair(
+          first: LabeledTextField(
+            label: '総走行距離（任意）',
+            controller: _totalDistanceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            suffix: 'km',
+          ),
+          second: LabeledTextField(
+            label: '実車距離（任意）',
+            controller: _occupiedDistanceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            suffix: 'km',
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: LabeledTextField(
-                label: '乗車回数（任意）',
-                controller: _ridesController,
-                keyboardType: TextInputType.number,
-                suffix: '回',
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            const Expanded(child: SizedBox()),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        LabeledTextField(
-          label: '給油額（任意）',
-          controller: _fuelController,
-          keyboardType: TextInputType.number,
-          suffix: '円',
+        _ResponsiveFieldPair(
+          first: LabeledTextField(
+            label: '乗車回数（任意）',
+            controller: _ridesController,
+            keyboardType: TextInputType.number,
+            suffix: '回',
+          ),
+          second: LabeledTextField(
+            label: '給油額（任意）',
+            controller: _fuelController,
+            keyboardType: TextInputType.number,
+            suffix: '円',
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         LabeledTextField(
@@ -610,20 +560,20 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
             child: Material(
               color: colorScheme.surface,
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadius.lg),
+                top: Radius.circular(AppRadius.md),
               ),
               child: Column(
                 children: [
                   const SizedBox(height: AppSpacing.md),
                   Center(
-                    child: Container(
-                      width: 32,
-                      height: 4,
-                      decoration: BoxDecoration(
+                    child: SizedBox(
+                      width: AppSpacing.xxl,
+                      child: Divider(
+                        height: AppSpacing.xs,
+                        thickness: AppSpacing.xs,
                         color: colorScheme.onSurfaceVariant.withValues(
                           alpha: 0.4,
                         ),
-                        borderRadius: BorderRadius.circular(AppRadius.full),
                       ),
                     ),
                   ),
@@ -648,43 +598,46 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
                         top: AppSpacing.sm,
                         bottom: AppSpacing.xxl,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // WorkSession Section Header
-                          SwitchListTile(
-                            title: Text(
-                              '勤務記録を入力する',
-                              style: textTheme.titleMedium,
-                            ),
-                            value: _isWorkSessionEnabled,
-                            onChanged: (val) {
-                              setState(() {
-                                _isWorkSessionEnabled = val;
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: AppLayout.contentMaxWidth,
                           ),
-                          _buildWorkSessionSection(textTheme),
-
-                          const Divider(),
-
-                          // Revenue Section Header
-                          SwitchListTile(
-                            title: Text(
-                              '売上記録を入力する',
-                              style: textTheme.titleMedium,
-                            ),
-                            value: _isRevenueEnabled,
-                            onChanged: (val) {
-                              setState(() {
-                                _isRevenueEnabled = val;
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SwitchListTile(
+                                title: Text(
+                                  '勤務記録を入力する',
+                                  style: textTheme.titleMedium,
+                                ),
+                                value: _isWorkSessionEnabled,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _isWorkSessionEnabled = val;
+                                  });
+                                },
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              _buildWorkSessionSection(textTheme),
+                              const Divider(),
+                              SwitchListTile(
+                                title: Text(
+                                  '売上記録を入力する',
+                                  style: textTheme.titleMedium,
+                                ),
+                                value: _isRevenueEnabled,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _isRevenueEnabled = val;
+                                  });
+                                },
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              _buildRevenueSection(textTheme),
+                            ],
                           ),
-                          _buildRevenueSection(textTheme),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -701,32 +654,74 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  children: [
-                    TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => Navigator.pop(context),
-                      child: const Text('キャンセル'),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: AppLayout.contentMaxWidth,
                     ),
-                    const Spacer(),
-                    FilledButton(
-                      onPressed: _isLoading ? null : _save,
-                      child: _isLoading
-                          ? SizedBox.square(
-                              dimension: AppIconSize.sm,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.onPrimary,
-                              ),
-                            )
-                          : const Text('保存'),
+                    child: Row(
+                      children: [
+                        TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () => Navigator.pop(context),
+                          child: const Text('キャンセル'),
+                        ),
+                        const Spacer(),
+                        FilledButton.icon(
+                          onPressed: _isLoading ? null : _save,
+                          icon: _isLoading
+                              ? SizedBox.square(
+                                  dimension: AppIconSize.sm,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colorScheme.onPrimary,
+                                  ),
+                                )
+                              : const Icon(Icons.save_outlined),
+                          label: const Text('保存'),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _ResponsiveFieldPair extends StatelessWidget {
+  final Widget first;
+  final Widget second;
+
+  const _ResponsiveFieldPair({required this.first, required this.second});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= AppLayout.formTwoColumnBreakpoint) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: first),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: second),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            first,
+            const SizedBox(height: AppSpacing.sm),
+            second,
+          ],
         );
       },
     );

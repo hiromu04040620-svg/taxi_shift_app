@@ -77,4 +77,49 @@ void main() {
 
     expect(find.text(todayLabel), findsOneWidget);
   });
+
+  testWidgets('画面幅に応じてカレンダーと日別詳細の配置を切り替える', (tester) async {
+    final container = ProviderContainer(
+      overrides: [appDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.devicePixelRatio = 1;
+
+    final repo = container.read(shiftPatternsRepositoryProvider);
+    await repo.create(
+      ShiftPattern(
+        id: 0,
+        name: 'レスポンシブテスト',
+        workStyle: WorkStyle.alternateDay,
+        cycle: const [ShiftType.workDay, ShiftType.afterDuty, ShiftType.dayOff],
+        startDate: DateTime.now(),
+        validFrom: DateTime.now(),
+        isActive: true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const TaxiShiftApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('calendar-compact-layout')), findsOneWidget);
+    expect(find.byKey(const Key('calendar-wide-layout')), findsNothing);
+    expect(tester.takeException(), null);
+
+    tester.view.physicalSize = const Size(1180, 820);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('calendar-wide-layout')), findsOneWidget);
+    expect(find.byKey(const Key('calendar-compact-layout')), findsNothing);
+    expect(tester.takeException(), null);
+  });
 }

@@ -77,23 +77,54 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const ShiftLegend(),
-          ShiftCalendar(
-            focusedMonth: _focusedMonth,
-            selectedDate: _selectedDate,
-            onDaySelected: _onDaySelected,
-            onPageChanged: _onPageChanged,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          const Divider(height: 1),
-          Expanded(
-            child: SingleChildScrollView(
-              child: DayDetailPanel(date: _selectedDate),
-            ),
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final calendar = Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ShiftLegend(),
+              ShiftCalendar(
+                focusedMonth: _focusedMonth,
+                selectedDate: _selectedDate,
+                onDaySelected: _onDaySelected,
+                onPageChanged: _onPageChanged,
+              ),
+            ],
+          );
+
+          if (constraints.maxWidth >= AppLayout.wideBreakpoint) {
+            return Row(
+              key: const Key('calendar-wide-layout'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: SingleChildScrollView(child: calendar),
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  flex: 2,
+                  child: SingleChildScrollView(
+                    child: DayDetailPanel(date: _selectedDate),
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return Column(
+            key: const Key('calendar-compact-layout'),
+            children: [
+              calendar,
+              const Divider(height: 1),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: DayDetailPanel(date: _selectedDate),
+                ),
+              ),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: ref.watch(adsEnabledProvider)
           ? BannerAdWidget(onPressed: () => context.push('/premium'))
