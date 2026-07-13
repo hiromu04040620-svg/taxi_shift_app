@@ -96,7 +96,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ],
       ),
       bottomNavigationBar: ref.watch(adsEnabledProvider)
-          ? const BannerAdWidget()
+          ? BannerAdWidget(onPressed: () => context.push('/premium'))
           : null,
     );
   }

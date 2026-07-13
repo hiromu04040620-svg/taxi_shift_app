@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../providers/ads_provider.dart';
 import '../../providers/selected_month_provider.dart';
@@ -53,7 +54,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
           children: [RevenueTab(), WorkTab(), ComplianceTab()],
         ),
         bottomNavigationBar: ref.watch(adsEnabledProvider)
-            ? const BannerAdWidget()
+            ? BannerAdWidget(onPressed: () => context.push('/premium'))
             : null,
       ),
     );
