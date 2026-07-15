@@ -138,7 +138,9 @@ platform :ios do
       sh("dart", "format", "--output=none", "--set-exit-if-changed", "lib", "test")
       sh("flutter", "analyze")
       sh("flutter", "test")
-      sh("bundle", "exec", "ruby", "test/scripts/app_store_connect_audit_test.rb")
+      Bundler.with_unbundled_env do
+        sh("ruby", "test/scripts/app_store_connect_audit_test.rb")
+      end
     end
   end
 
@@ -154,6 +156,7 @@ platform :ios do
         "--release",
         "--build-name=#{version[:name]}",
         "--build-number=#{version[:number]}",
+        "--export-options-plist=ios/ExportOptions.plist",
       )
     end
     UI.user_error!("IPA was not generated at #{IPA_PATH}") unless File.exist?(IPA_PATH)

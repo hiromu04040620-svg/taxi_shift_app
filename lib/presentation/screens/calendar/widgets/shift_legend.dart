@@ -12,43 +12,35 @@ class ShiftLegend extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
-      child: Row(
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
         children: ShiftType.values.map((type) {
           final bgColor = ShiftTypeDisplay.backgroundColor(type, colorScheme);
           final fgColor = ShiftTypeDisplay.foregroundColor(type, colorScheme);
-          final shortLabel = ShiftTypeDisplay.shortLabel(type);
           final fullLabel = ShiftTypeDisplay.fullLabel(type);
 
-          return Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.md),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Material(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  child: SizedBox.square(
-                    dimension: AppIconSize.md,
-                    child: Center(
-                      child: Text(
-                        shortLabel,
-                        style: textTheme.labelSmall?.copyWith(
-                          color: fgColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
+          return Material(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xs,
+                vertical: AppSpacing.xs,
+              ),
+              child: Text(
+                fullLabel,
+                style: textTheme.labelMedium?.copyWith(
+                  color: fgColor,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(fullLabel, style: textTheme.labelMedium),
-              ],
+              ),
             ),
           );
         }).toList(),
