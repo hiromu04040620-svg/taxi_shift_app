@@ -130,4 +130,32 @@ void main() {
     expect(find.widgetWithText(FilledButton, '広告非表示を購入'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '購入を復元'), findsOneWidget);
   });
+
+  testWidgets('購入失敗時は技術文言ではなく再試行案内と診断コードを表示する', (tester) async {
+    await pumpScreen(tester);
+
+    final details =
+        PurchaseDetails(
+            purchaseID: 'purchase-error',
+            productID: PremiumConfig.removeAdsProductId,
+            verificationData: PurchaseVerificationData(
+              localVerificationData: 'local',
+              serverVerificationData: 'server',
+              source: 'app_store',
+            ),
+            transactionDate: null,
+            status: PurchaseStatus.error,
+          )
+          ..error = IAPError(
+            source: 'app_store',
+            code: 'storekit_unknown',
+            message: 'SKErrorDomain',
+          );
+    gateway.controller.add([details]);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('購入を完了できませんでした'), findsOneWidget);
+    expect(find.text('エラーコード: app_store/storekit_unknown'), findsOneWidget);
+    expect(find.text('SKErrorDomain'), findsNothing);
+  });
 }

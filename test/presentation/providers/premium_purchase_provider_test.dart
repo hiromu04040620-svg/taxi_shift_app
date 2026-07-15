@@ -283,6 +283,30 @@ void main() {
     expect(settingsRepository.premiumUpdateCount, 0);
   });
 
+  test('購入エラーは利用者向け文言と診断コードを保持する', () async {
+    container.listen(
+      premiumPurchaseControllerProvider,
+      (_, _) {},
+      fireImmediately: true,
+    );
+    await waitForStatus(container, PremiumPurchaseStatus.ready);
+
+    final details = purchaseDetails(status: PurchaseStatus.error)
+      ..error = IAPError(
+        source: 'app_store',
+        code: 'storekit_unknown',
+        message: 'SKErrorDomain',
+        details: const {'domain': 'SKErrorDomain', 'code': 0},
+      );
+    gateway.purchaseController.add([details]);
+    await waitForStatus(container, PremiumPurchaseStatus.ready);
+
+    final state = container.read(premiumPurchaseControllerProvider);
+    expect(state.message, '購入を完了できませんでした。もう一度お試しください。');
+    expect(state.errorCode, 'app_store/storekit_unknown');
+    expect(state.canPurchase, true);
+  });
+
   test('復元はStoreKitへ要求し、対象購入の復元で権利を保存する', () async {
     container.listen(
       premiumPurchaseControllerProvider,

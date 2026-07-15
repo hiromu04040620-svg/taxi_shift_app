@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -21,17 +23,20 @@ class PremiumPurchaseState {
   final PremiumPurchaseStatus status;
   final ProductDetails? product;
   final String? message;
+  final String? errorCode;
 
   const PremiumPurchaseState({
     required this.status,
     this.product,
     this.message,
+    this.errorCode,
   });
 
   const PremiumPurchaseState.loading()
     : status = PremiumPurchaseStatus.loading,
       product = null,
-      message = null;
+      message = null,
+      errorCode = null;
 
   bool get canPurchase =>
       status == PremiumPurchaseStatus.ready && product != null;
@@ -82,13 +87,21 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
       });
       if (_disposed) return;
 
+      final queryError = response.error;
+      if (queryError != null) {
+        _logIapError('query-product', queryError);
+      }
+
       final product = response.productDetails
           .where((item) => item.id == PremiumConfig.removeAdsProductId)
           .firstOrNull;
       if (product == null) {
-        state = const PremiumPurchaseState(
+        state = PremiumPurchaseState(
           status: PremiumPurchaseStatus.error,
           message: '広告非表示の商品情報を取得できませんでした。時間をおいて再度お試しください。',
+          errorCode: queryError == null
+              ? 'app_store/product-not-found'
+              : _iapDiagnosticCode(queryError),
         );
         return;
       }
@@ -97,11 +110,13 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
         status: PremiumPurchaseStatus.ready,
         product: product,
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _logUnexpectedError('query-product', error, stackTrace);
       if (_disposed) return;
-      state = const PremiumPurchaseState(
+      state = PremiumPurchaseState(
         status: PremiumPurchaseStatus.error,
         message: '購入情報の読み込みに失敗しました。時間をおいて再度お試しください。',
+        errorCode: _unexpectedDiagnosticCode(error),
       );
     }
   }
@@ -127,14 +142,17 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
           status: PremiumPurchaseStatus.ready,
           product: product,
           message: '購入を開始できませんでした。もう一度お試しください。',
+          errorCode: 'purchase/not-started',
         );
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _logUnexpectedError('start-purchase', error, stackTrace);
       if (_disposed) return;
       state = PremiumPurchaseState(
         status: PremiumPurchaseStatus.ready,
         product: product,
         message: '購入を開始できませんでした。もう一度お試しください。',
+        errorCode: _unexpectedDiagnosticCode(error),
       );
     }
   }
@@ -161,7 +179,8 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
         product: product,
         message: '購入履歴を確認しています。復元結果が反映されるまでお待ちください。',
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _logUnexpectedError('restore', error, stackTrace);
       if (_disposed) return;
       state = PremiumPurchaseState(
         status: product == null
@@ -169,6 +188,7 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
             : PremiumPurchaseStatus.ready,
         product: product,
         message: '購入の復元に失敗しました。もう一度お試しください。',
+        errorCode: _unexpectedDiagnosticCode(error),
       );
     }
   }
@@ -188,12 +208,19 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
         case PurchaseStatus.restored:
           await _activatePremium(purchase);
         case PurchaseStatus.error:
+          final purchaseError = purchase.error;
+          if (purchaseError != null) {
+            _logIapError('purchase-update', purchaseError);
+          }
           state = PremiumPurchaseState(
             status: state.product == null
                 ? PremiumPurchaseStatus.error
                 : PremiumPurchaseStatus.ready,
             product: state.product,
-            message: purchase.error?.message ?? '購入に失敗しました。もう一度お試しください。',
+            message: '購入を完了できませんでした。もう一度お試しください。',
+            errorCode: purchaseError == null
+                ? 'app_store/unknown'
+                : _iapDiagnosticCode(purchaseError),
           );
         case PurchaseStatus.canceled:
           state = PremiumPurchaseState(
@@ -219,17 +246,20 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
         product: state.product,
         message: '広告非表示が有効になりました。',
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _logUnexpectedError('activate-premium', error, stackTrace);
       if (_disposed) return;
       state = PremiumPurchaseState(
         status: PremiumPurchaseStatus.error,
         product: state.product,
         message: '購入内容をアプリに反映できませんでした。購入を復元してください。',
+        errorCode: _unexpectedDiagnosticCode(error),
       );
     }
   }
 
-  void _handlePurchaseStreamError(Object _) {
+  void _handlePurchaseStreamError(Object error, StackTrace stackTrace) {
+    _logUnexpectedError('purchase-stream', error, stackTrace);
     if (_disposed) return;
     state = PremiumPurchaseState(
       status: state.product == null
@@ -237,6 +267,36 @@ class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
           : PremiumPurchaseStatus.ready,
       product: state.product,
       message: '購入状態を確認できませんでした。もう一度お試しください。',
+      errorCode: _unexpectedDiagnosticCode(error),
     );
+  }
+
+  String _iapDiagnosticCode(IAPError error) {
+    return '${error.source}/${error.code}';
+  }
+
+  String _unexpectedDiagnosticCode(Object error) {
+    if (error is IAPError) return _iapDiagnosticCode(error);
+    if (error is PlatformException) return 'platform/${error.code}';
+    return 'purchase/${error.runtimeType}';
+  }
+
+  void _logIapError(String operation, IAPError error) {
+    debugPrint(
+      'IAP error operation=$operation source=${error.source} '
+      'code=${error.code} message=${error.message} details=${error.details}',
+    );
+  }
+
+  void _logUnexpectedError(
+    String operation,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    if (error is IAPError) {
+      _logIapError(operation, error);
+      return;
+    }
+    debugPrint('IAP error operation=$operation error=$error\n$stackTrace');
   }
 }

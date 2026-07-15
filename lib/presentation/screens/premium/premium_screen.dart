@@ -56,7 +56,9 @@ class PremiumScreen extends ConsumerWidget {
                   if (purchaseState.message != null) ...[
                     _StatusMessage(
                       message: purchaseState.message!,
+                      errorCode: purchaseState.errorCode,
                       isError:
+                          purchaseState.errorCode != null ||
                           purchaseState.status == PremiumPurchaseStatus.error ||
                           purchaseState.status ==
                               PremiumPurchaseStatus.unavailable,
@@ -245,9 +247,14 @@ class _BenefitRow extends StatelessWidget {
 
 class _StatusMessage extends StatelessWidget {
   final String message;
+  final String? errorCode;
   final bool isError;
 
-  const _StatusMessage({required this.message, required this.isError});
+  const _StatusMessage({
+    required this.message,
+    required this.isError,
+    this.errorCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -269,13 +276,27 @@ class _StatusMessage extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
-              child: Text(
-                message,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isError
-                      ? colorScheme.onErrorContainer
-                      : colorScheme.onPrimaryContainer,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isError
+                          ? colorScheme.onErrorContainer
+                          : colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  if (errorCode != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'エラーコード: $errorCode',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
