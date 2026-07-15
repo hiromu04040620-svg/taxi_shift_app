@@ -3,7 +3,14 @@ default_platform(:ios)
 require "fileutils"
 
 APP_IDENTIFIER = "com.sasame.takushiftokun"
+APP_STORE_VERSION = ENV.fetch("ASC_APP_VERSION", "1.0")
+REPO_ROOT = File.expand_path("..", __dir__)
 IPA_PATH = File.expand_path("../build/ios/ipa/TaxiShift.ipa", __dir__)
+ASC_AUDIT_PATH = File.expand_path("../scripts/app_store_connect_audit.rb", __dir__)
+REVIEW_NOTES_PATH = File.expand_path("review_notes.txt", __dir__)
+DEFAULT_ASC_KEY_ID = "CRVY464U3R"
+DEFAULT_ASC_ISSUER_ID = "f5b2b91d-79f1-45cc-8c15-daca84d7a5b6"
+DEFAULT_ASC_KEY_PATH = File.expand_path("AuthKey_CRVY464U3R.p8", __dir__)
 
 def flutter_version
   pubspec = File.read(File.expand_path("../pubspec.yaml", __dir__))
@@ -17,12 +24,16 @@ def flutter_version
 end
 
 def app_store_connect_api_key_from_env
-  key_id = ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]
-  issuer_id = ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]
-  key_filepath = ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+  key_id = ENV.fetch("APP_STORE_CONNECT_API_KEY_KEY_ID", DEFAULT_ASC_KEY_ID)
+  issuer_id = ENV.fetch(
+    "APP_STORE_CONNECT_API_KEY_ISSUER_ID",
+    DEFAULT_ASC_ISSUER_ID,
+  )
+  key_filepath = ENV.fetch(
+    "APP_STORE_CONNECT_API_KEY_KEY_FILEPATH",
+    DEFAULT_ASC_KEY_PATH,
+  )
   key_content = ENV["APP_STORE_CONNECT_API_KEY_KEY"]
-
-  return nil if key_id.to_s.empty?
 
   options = {
     key_id: key_id,
@@ -32,6 +43,7 @@ def app_store_connect_api_key_from_env
   }
 
   if !key_filepath.to_s.empty?
+    UI.user_error!("App Store Connect APIキーがありません: #{key_filepath}") unless File.exist?(key_filepath)
     options[:key_filepath] = key_filepath
   elsif !key_content.to_s.empty?
     options[:key_content] = key_content
@@ -47,16 +59,103 @@ def app_store_connect_api_key_from_env
   app_store_connect_api_key(**options)
 end
 
+def connect_api_app
+  app_store_connect_api_key_from_env
+  app = Spaceship::ConnectAPI::App.find(APP_IDENTIFIER)
+  UI.user_error!("App Store Connectで#{APP_IDENTIFIER}が見つかりません") unless app
+
+  app
+end
+
+def editable_app_store_version(app)
+  requested_id = ENV["ASC_APP_VERSION_ID"]
+  versions = app.get_app_store_versions(
+    filter: { platform: Spaceship::ConnectAPI::Platform::IOS },
+    includes: "build",
+    limit: 50,
+  )
+  version = if requested_id
+              versions.find { |item| item.id == requested_id }
+            else
+              editable_states = [
+                "DEVELOPER_REJECTED",
+                "METADATA_REJECTED",
+                "PREPARE_FOR_SUBMISSION",
+                "READY_FOR_REVIEW",
+                "REJECTED",
+              ]
+              versions.select do |item|
+                item.version_string == APP_STORE_VERSION &&
+                  editable_states.include?(item.app_version_state)
+              end.max_by(&:created_date)
+            end
+  UI.user_error!("提出対象のApp Storeバージョン#{APP_STORE_VERSION}が見つかりません") unless version
+
+  version
+end
+
+def wait_for_uploaded_build(app:, build_number:, timeout: 1800, interval: 30)
+  deadline = Time.now + timeout
+  loop do
+    builds = app.get_builds(
+      filter: { version: build_number.to_s },
+      includes: Spaceship::ConnectAPI::Build::ESSENTIAL_INCLUDES,
+      limit: 20,
+      sort: "-uploadedDate",
+    )
+    build = builds.find { |item| item.version.to_s == build_number.to_s }
+    if build
+      UI.message("Build #{build_number}: #{build.processing_state}")
+      return build if build.processing_state == "VALID"
+      if %w[FAILED INVALID].include?(build.processing_state)
+        UI.user_error!("Build #{build_number}の処理に失敗しました: #{build.processing_state}")
+      end
+    else
+      UI.message("Build #{build_number}がApp Store Connectに現れるのを待っています")
+    end
+
+    UI.user_error!("Build #{build_number}の処理待ちがタイムアウトしました") if Time.now >= deadline
+    sleep(interval)
+  end
+end
+
+def run_asc_audit(gate: false, refresh_iap_localization: false)
+  ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"] ||= DEFAULT_ASC_KEY_ID
+  ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] ||= DEFAULT_ASC_ISSUER_ID
+  ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] ||= DEFAULT_ASC_KEY_PATH
+  Dir.chdir(REPO_ROOT) do
+    command = ["bundle", "exec", "ruby", ASC_AUDIT_PATH]
+    command << "--refresh-iap-localization" if refresh_iap_localization
+    command << "--gate" if gate
+    sh(*command)
+  end
+end
+
 platform :ios do
+  desc "Run formatting, analysis, Flutter tests, and release script tests"
+  lane :verify_release do
+    Dir.chdir(REPO_ROOT) do
+      sh("dart", "format", "--output=none", "--set-exit-if-changed", "lib", "test")
+      sh("flutter", "analyze")
+      sh("flutter", "test")
+      sh("bundle", "exec", "ruby", "test/scripts/app_store_connect_audit_test.rb")
+    end
+  end
+
   desc "Build App Store IPA from Flutter pubspec version"
   lane :build_ipa do
     version = flutter_version
     FileUtils.rm_rf(File.dirname(IPA_PATH))
-    sh(
-      "flutter build ipa --release " \
-      "--build-name=#{version[:name]} " \
-      "--build-number=#{version[:number]}"
-    )
+    Dir.chdir(REPO_ROOT) do
+      sh(
+        "flutter",
+        "build",
+        "ipa",
+        "--release",
+        "--build-name=#{version[:name]}",
+        "--build-number=#{version[:number]}",
+      )
+    end
     UI.user_error!("IPA was not generated at #{IPA_PATH}") unless File.exist?(IPA_PATH)
     UI.success("Built #{IPA_PATH}")
   end
@@ -69,7 +168,7 @@ platform :ios do
     upload_options = {
       app_identifier: APP_IDENTIFIER,
       ipa: IPA_PATH,
-      skip_waiting_for_build_processing: true,
+      skip_waiting_for_build_processing: options.fetch(:skip_waiting_for_processing, true),
       uses_non_exempt_encryption: false
     }
     upload_options[:api_key] = api_key unless api_key.nil?
@@ -77,12 +176,145 @@ platform :ios do
     upload_to_testflight(**upload_options)
   end
 
+  desc "Show the current App Store version, build, IAP, and review attachment state"
+  lane :asc_status do
+    run_asc_audit
+  end
+
+  desc "Stop unless every API-visible App Review submission condition passes"
+  lane :asc_preflight do
+    run_asc_audit(gate: true)
+  end
+
+  desc "Update the editable Japanese remove_ads localization through the API"
+  lane :refresh_iap_localization do
+    run_asc_audit(refresh_iap_localization: true)
+  end
+
+  desc "Choose a reusable local build number or increment past App Store Connect"
+  lane :bump_build_number do |options|
+    app = connect_api_app
+    remote_max = app.get_builds(limit: 100).map { |build| build.version.to_i }.max || 0
+    local = flutter_version[:number].to_i
+    next_number = options[:number]&.to_i
+    next_number ||= local > remote_max ? local : remote_max + 1
+    UI.user_error!("Build number must be greater than #{remote_max}") if next_number <= remote_max
+
+    pubspec_path = File.join(REPO_ROOT, "pubspec.yaml")
+    pubspec = File.read(pubspec_path)
+    updated = pubspec.sub(
+      /^(version:\s*\d+\.\d+\.\d+)\+\d+$/,
+      "\\1+#{next_number}",
+    )
+    UI.user_error!("pubspec.yamlのversionを更新できませんでした") if updated == pubspec && local != next_number
+    File.write(pubspec_path, updated)
+    UI.success("Flutter build number: #{local} -> #{next_number}")
+    next_number
+  end
+
+  desc "Verify, build, upload, wait for VALID, and select the build for App Review"
+  lane :release_candidate do |options|
+    verify_release
+    build_number = bump_build_number(number: options[:number])
+    build_ipa
+    upload_testflight(skip_build: true, skip_waiting_for_processing: true)
+
+    app = connect_api_app
+    build = wait_for_uploaded_build(
+      app: app,
+      build_number: build_number,
+      timeout: (options[:timeout] || 1800).to_i,
+      interval: (options[:interval] || 30).to_i,
+    )
+    version = editable_app_store_version(app)
+    version.select_build(build_id: build.id)
+    UI.success("Build #{build_number}をApp Store version #{version.version_string}へ選択しました")
+  end
+
+  desc "Update App Review notes from fastlane/review_notes.txt"
+  lane :sync_review_notes do
+    UI.user_error!("Review notes template is missing") unless File.exist?(REVIEW_NOTES_PATH)
+    app = connect_api_app
+    version = editable_app_store_version(app)
+    detail = version.fetch_app_store_review_detail
+    UI.user_error!("App Review detailが見つかりません") unless detail
+
+    detail.update(attributes: { notes: File.read(REVIEW_NOTES_PATH).strip })
+    UI.success("App Review notesを更新しました")
+  end
+
+  desc "Upload a physical-device Sandbox purchase recording to App Review"
+  lane :upload_review_video do |options|
+    video_path = options[:path].to_s
+    UI.user_error!("path:で審査用動画を指定してください") if video_path.empty?
+    video_path = File.expand_path(video_path, REPO_ROOT)
+    UI.user_error!("審査用動画が見つかりません: #{video_path}") unless File.exist?(video_path)
+    unless %w[.m4v .mov .mp4].include?(File.extname(video_path).downcase)
+      UI.user_error!("審査用動画はm4v、mov、mp4のいずれかにしてください")
+    end
+
+    app = connect_api_app
+    version = editable_app_store_version(app)
+    detail = version.fetch_app_store_review_detail
+    UI.user_error!("App Review detailが見つかりません") unless detail
+
+    filename = File.basename(video_path)
+    Array(detail.app_store_review_attachments).each do |attachment|
+      attachment.delete! if attachment.file_name == filename
+    end
+    uploaded = detail.upload_attachment(path: video_path)
+    UI.user_error!("審査用動画のアップロード完了を確認できません") unless uploaded&.uploaded
+    UI.success("審査用動画をアップロードしました: #{filename}")
+  end
+
+  desc "Submit the selected version after IAP and recording preflight passes"
+  lane :submit_review do
+    unless ENV["ASC_FIRST_IAP_ASSOCIATED"] == "true"
+      UI.user_error!(
+        "初回IAP紐付け確認後にASC_FIRST_IAP_ASSOCIATED=trueを付けて実行してください",
+      )
+    end
+    sync_review_notes
+    asc_preflight
+
+    app = connect_api_app
+    version = editable_app_store_version(app)
+    submission = app.get_ready_review_submission(
+      platform: Spaceship::ConnectAPI::Platform::IOS,
+      includes: "items",
+    )
+    submission ||= app.create_review_submission(
+      platform: Spaceship::ConnectAPI::Platform::IOS,
+    )
+
+    items = Spaceship::ConnectAPI::ReviewSubmissionItem.all(
+      review_submission_id: submission.id,
+      includes: "appStoreVersion",
+    )
+    unless items.any? { |item| item.app_store_version&.id == version.id }
+      submission.add_app_store_version_to_review_items(
+        app_store_version_id: version.id,
+      )
+    end
+
+    result = submission.submit_for_review
+    UI.success("App Reviewへ提出しました: #{result.id} / #{result.state}")
+  end
+
   desc "Prepare App Store screenshot files from the current simulator screenshots"
   lane :prepare_screenshots do
-    sh("mkdir -p screenshots/ja-JP")
-    sh("cp ../screenshots/app_store/iphone_65_01_1284x2778.png 'screenshots/ja-JP/01_iPhone_6_5.png'")
-    sh("cp ../screenshots/app_store/ipad_13_01.png 'screenshots/ja-JP/01_iPad_13.png'")
-    sh("sips -g pixelWidth -g pixelHeight screenshots/ja-JP/*.png")
+    FileUtils.mkdir_p(File.join(__dir__, "screenshots", "ja-JP"))
+    FileUtils.cp(
+      File.join(REPO_ROOT, "screenshots/app_store/iphone_65_01_1284x2778.png"),
+      File.join(__dir__, "screenshots/ja-JP/01_iPhone_6_5.png"),
+    )
+    FileUtils.cp(
+      File.join(REPO_ROOT, "screenshots/app_store/ipad_13_01.png"),
+      File.join(__dir__, "screenshots/ja-JP/01_iPad_13.png"),
+    )
+    Dir.glob(File.join(__dir__, "screenshots/ja-JP/*.png")).each do |path|
+      sh("sips", "-g", "pixelWidth", "-g", "pixelHeight", path)
+    end
   end
 
   desc "Upload screenshots only to App Store Connect"

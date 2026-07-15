@@ -1,0 +1,13 @@
+The non-consumable In-App Purchase is implemented with StoreKit and is available without signing in.
+
+Product ID: remove_ads
+Display name: 広告非表示
+
+Purchase steps:
+1. Launch TaxiShift from the Home Screen.
+2. Tap the ad area at the bottom of the Calendar screen, or open Settings and tap "広告非表示".
+3. On the Premium screen, confirm that the App Store price is displayed.
+4. Tap the purchase button and complete the Sandbox purchase.
+5. The ads are removed after the transaction completes. "購入を復元" is available on the same screen.
+
+The attached physical-device recording begins on the iOS Home Screen and demonstrates the calendar, daily entry, summary, and successful Sandbox purchase flow.
