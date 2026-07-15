@@ -105,7 +105,7 @@ void main() {
     );
   }
 
-  testWidgets('設定画面の各セクションのタイトルが表示される', (tester) async {
+  testWidgets('設定セクションが表示される', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);

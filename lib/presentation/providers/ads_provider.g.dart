@@ -40,7 +40,7 @@ final class AdsEnabledProvider extends $NotifierProvider<AdsEnabled, bool> {
   }
 }
 
-String _$adsEnabledHash() => r'55d4b7158125b2c7c39451063362a4499e15c19d';
+String _$adsEnabledHash() => r'5cc69df5a0201015a0b11eb4a5297694e705294a';
 
 abstract class _$AdsEnabled extends $Notifier<bool> {
   bool build();

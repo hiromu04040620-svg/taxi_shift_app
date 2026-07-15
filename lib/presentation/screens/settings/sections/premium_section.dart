@@ -1,42 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../../core/theme/design_tokens.dart';
-import '../../paywall/paywall_sheet.dart';
+import '../../../../../domain/models/app_settings.dart';
+import '../../../providers/premium_purchase_provider.dart';
 import '../widgets/setting_tile.dart';
 import 'section_header.dart';
 
-class PremiumSection extends StatelessWidget {
-  const PremiumSection({super.key, required this.isPremium});
+class PremiumSection extends ConsumerWidget {
+  final AppSettings settings;
 
-  final bool isPremium;
+  const PremiumSection({super.key, required this.settings});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final purchaseState = ref.watch(premiumPurchaseControllerProvider);
+    final isPremium =
+        settings.isPremium ||
+        purchaseState.status == PremiumPurchaseStatus.purchased;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SectionHeader(title: 'プレミアム'),
         SettingTile(
           leading: Icon(
-            isPremium ? Icons.verified : Icons.workspace_premium,
-            color: Theme.of(context).colorScheme.primary,
+            isPremium ? Icons.verified : Icons.workspace_premium_outlined,
+            color: isPremium ? colorScheme.primary : null,
           ),
-          title: isPremium ? '広告非表示は有効です' : '広告を非表示',
-          subtitle: isPremium ? 'カレンダーとサマリーの広告は表示されません' : '買い切り 300円',
-          trailing: const Icon(Icons.arrow_forward_ios, size: AppIconSize.sm),
-          onTap: () {
-            showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.lg),
-                ),
-              ),
-              builder: (context) => const PaywallSheet(),
-            );
-          },
+          title: '広告非表示',
+          subtitle: isPremium
+              ? '有効'
+              : purchaseState.product != null
+              ? '${purchaseState.product!.price}・買い切り'
+              : '価格を確認しています',
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/premium'),
         ),
       ],
     );

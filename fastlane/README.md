@@ -15,6 +15,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios verify_release
+
+```sh
+[bundle exec] fastlane ios verify_release
+```
+
+Run formatting, analysis, Flutter tests, and release script tests
+
 ### ios build_ipa
 
 ```sh
@@ -30,6 +38,70 @@ Build App Store IPA from Flutter pubspec version
 ```
 
 Build and upload IPA to App Store Connect / TestFlight
+
+### ios asc_status
+
+```sh
+[bundle exec] fastlane ios asc_status
+```
+
+Show the current App Store version, build, IAP, and review attachment state
+
+### ios asc_preflight
+
+```sh
+[bundle exec] fastlane ios asc_preflight
+```
+
+Stop unless every API-visible App Review submission condition passes
+
+### ios refresh_iap_localization
+
+```sh
+[bundle exec] fastlane ios refresh_iap_localization
+```
+
+Update the editable Japanese remove_ads localization through the API
+
+### ios bump_build_number
+
+```sh
+[bundle exec] fastlane ios bump_build_number
+```
+
+Choose a reusable local build number or increment past App Store Connect
+
+### ios release_candidate
+
+```sh
+[bundle exec] fastlane ios release_candidate
+```
+
+Verify, build, upload, wait for VALID, and select the build for App Review
+
+### ios sync_review_notes
+
+```sh
+[bundle exec] fastlane ios sync_review_notes
+```
+
+Update App Review notes from fastlane/review_notes.txt
+
+### ios upload_review_video
+
+```sh
+[bundle exec] fastlane ios upload_review_video
+```
+
+Upload a physical-device Sandbox purchase recording to App Review
+
+### ios submit_review
+
+```sh
+[bundle exec] fastlane ios submit_review
+```
+
+Submit the selected version after IAP and recording preflight passes
 
 ### ios prepare_screenshots
 

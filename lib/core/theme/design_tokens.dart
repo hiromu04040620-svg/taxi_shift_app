@@ -36,6 +36,17 @@ class AppTapTarget {
   static const double min = 48;
 }
 
+class AppLayout {
+  AppLayout._();
+
+  static const double contentMaxWidth = 680;
+  static const double wideBreakpoint = 720;
+  static const double formTwoColumnBreakpoint = 560;
+  static const double summaryMaxWidth = 960;
+  static const double kpiMaxExtent = 260;
+  static const double kpiAspectRatio = 1.7;
+}
+
 class AppAnimation {
   AppAnimation._();
 

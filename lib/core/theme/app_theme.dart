@@ -7,49 +7,84 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData light() {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: AppColorSchemes.light,
-      textTheme: _textTheme,
-      fontFamilyFallback: const ['Noto Sans CJK JP'],
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      cardTheme: _cardTheme,
-      inputDecorationTheme: _inputDecorationTheme,
-    );
+    return _buildTheme(AppColorSchemes.light);
   }
 
   static ThemeData dark() {
+    return _buildTheme(AppColorSchemes.dark);
+  }
+
+  static ThemeData _buildTheme(ColorScheme colorScheme) {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: AppColorSchemes.dark,
+      colorScheme: colorScheme,
       textTheme: _textTheme,
       fontFamilyFallback: const ['Noto Sans CJK JP'],
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      cardTheme: _cardTheme,
-      inputDecorationTheme: _inputDecorationTheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardTheme: _cardTheme(colorScheme),
+      inputDecorationTheme: _inputDecorationTheme(colorScheme),
+      dividerTheme: DividerThemeData(
+        color: colorScheme.outlineVariant,
+        space: AppSpacing.md,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, AppTapTarget.min),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, AppTapTarget.min),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        elevation: 0,
+        backgroundColor: colorScheme.surfaceContainer,
+        indicatorColor: colorScheme.primaryContainer,
+      ),
     );
   }
 
   static const TextTheme _textTheme = TextTheme();
 
-  static final CardThemeData _cardTheme = CardThemeData(
+  static CardThemeData _cardTheme(ColorScheme colorScheme) => CardThemeData(
     elevation: 0,
+    color: colorScheme.surfaceContainerLow,
+    surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(AppRadius.lg),
+      borderRadius: BorderRadius.circular(AppRadius.md),
     ),
-    margin: const EdgeInsets.all(AppSpacing.sm),
+    margin: EdgeInsets.zero,
   );
 
-  static final InputDecorationTheme _inputDecorationTheme =
+  static InputDecorationTheme _inputDecorationTheme(ColorScheme colorScheme) =>
       InputDecorationTheme(
         filled: true,
+        fillColor: colorScheme.surfaceContainerLow,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
       );
 }

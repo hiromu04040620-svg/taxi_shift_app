@@ -12,40 +12,34 @@ class ShiftLegend extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
-      child: Row(
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
         children: ShiftType.values.map((type) {
           final bgColor = ShiftTypeDisplay.backgroundColor(type, colorScheme);
           final fgColor = ShiftTypeDisplay.foregroundColor(type, colorScheme);
-          final shortLabel = ShiftTypeDisplay.shortLabel(type);
           final fullLabel = ShiftTypeDisplay.fullLabel(type);
 
-          return Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: Chip(
-              backgroundColor: bgColor,
-              side: BorderSide.none,
-              labelPadding: const EdgeInsets.symmetric(
+          return Material(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.xs,
+                vertical: AppSpacing.xs,
               ),
-              avatar: CircleAvatar(
-                backgroundColor: fgColor.withValues(alpha: 0.2),
-                child: Text(
-                  shortLabel,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: fgColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              label: Text(
+              child: Text(
                 fullLabel,
-                style: textTheme.labelMedium?.copyWith(color: fgColor),
+                style: textTheme.labelMedium?.copyWith(
+                  color: fgColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           );

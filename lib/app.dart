@@ -3,7 +3,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
+import 'presentation/providers/ad_runtime_provider.dart';
 import 'presentation/providers/app_settings_queries_provider.dart';
+import 'presentation/providers/premium_purchase_provider.dart';
 import 'presentation/router/app_router.dart';
 
 class TaxiShiftApp extends ConsumerWidget {
@@ -11,6 +13,8 @@ class TaxiShiftApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(adRuntimeControllerProvider);
+    ref.watch(premiumPurchaseControllerProvider);
     final settingsAsync = ref.watch(appSettingsProvider);
     final themeMode = settingsAsync.maybeWhen(
       data: (s) => s.themeMode,
@@ -20,6 +24,7 @@ class TaxiShiftApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'TaxiShift',
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,

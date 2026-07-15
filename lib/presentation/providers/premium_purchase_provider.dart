@@ -1,250 +1,302 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
-import '../../application/providers/app_settings_controller.dart';
+import '../../application/providers/repositories_provider.dart';
 import '../../core/config/premium_config.dart';
+import '../../core/services/in_app_purchase_gateway.dart';
 
-final premiumStoreProvider = Provider<PremiumStore>(
-  (ref) => InAppPurchasePremiumStore(InAppPurchase.instance),
-);
-
-final premiumPurchaseControllerProvider =
-    ChangeNotifierProvider<PremiumPurchaseController>(
-      (ref) => PremiumPurchaseController(
-        ref,
-        store: ref.watch(premiumStoreProvider),
-      ),
-    );
-
-abstract class PremiumStore {
-  Stream<List<PurchaseDetails>> get purchaseStream;
-
-  Future<bool> isAvailable();
-
-  Future<ProductDetailsResponse> queryProductDetails(Set<String> identifiers);
-
-  Future<bool> buyNonConsumable(ProductDetails product);
-
-  Future<void> restorePurchases();
-
-  Future<void> completePurchase(PurchaseDetails purchase);
+enum PremiumPurchaseStatus {
+  loading,
+  ready,
+  purchasing,
+  restoring,
+  purchased,
+  unavailable,
+  error,
 }
 
-class InAppPurchasePremiumStore implements PremiumStore {
-  InAppPurchasePremiumStore(this._iap);
+class PremiumPurchaseState {
+  final PremiumPurchaseStatus status;
+  final ProductDetails? product;
+  final String? message;
+  final String? errorCode;
 
-  final InAppPurchase _iap;
+  const PremiumPurchaseState({
+    required this.status,
+    this.product,
+    this.message,
+    this.errorCode,
+  });
 
-  @override
-  Stream<List<PurchaseDetails>> get purchaseStream => _iap.purchaseStream;
-
-  @override
-  Future<bool> isAvailable() => _iap.isAvailable();
-
-  @override
-  Future<ProductDetailsResponse> queryProductDetails(Set<String> identifiers) =>
-      _iap.queryProductDetails(identifiers);
-
-  @override
-  Future<bool> buyNonConsumable(ProductDetails product) {
-    return _iap.buyNonConsumable(
-      purchaseParam: PurchaseParam(productDetails: product),
-    );
-  }
-
-  @override
-  Future<void> restorePurchases() => _iap.restorePurchases();
-
-  @override
-  Future<void> completePurchase(PurchaseDetails purchase) {
-    return _iap.completePurchase(purchase);
-  }
-}
-
-class PremiumPurchaseController extends ChangeNotifier {
-  PremiumPurchaseController(this._ref, {required this._store}) {
-    _subscription = _store.purchaseStream.listen(
-      _handlePurchaseUpdates,
-      onError: (Object error) {
-        _isLoading = false;
-        _message = '購入状態の取得に失敗しました';
-        notifyListeners();
-      },
-    );
-    loadProducts();
-  }
-
-  final Ref _ref;
-  final PremiumStore _store;
-  StreamSubscription<List<PurchaseDetails>>? _subscription;
-
-  bool _isLoading = false;
-  bool _isStoreAvailable = false;
-  String? _message;
-  ProductDetails? _removeAdsProduct;
-
-  bool get isLoading => _isLoading;
-  bool get isStoreAvailable => _isStoreAvailable;
-  String? get message => _message;
-  ProductDetails? get removeAdsProduct => _removeAdsProduct;
-
-  String get priceLabel =>
-      _removeAdsProduct?.price ?? PremiumConfig.fallbackPriceLabel;
+  const PremiumPurchaseState.loading()
+    : status = PremiumPurchaseStatus.loading,
+      product = null,
+      message = null,
+      errorCode = null;
 
   bool get canPurchase =>
-      !_isLoading && _isStoreAvailable && _removeAdsProduct != null;
+      status == PremiumPurchaseStatus.ready && product != null;
+}
 
-  Future<void> loadProducts() async {
-    _isLoading = true;
-    _message = null;
-    notifyListeners();
+final premiumPurchaseControllerProvider =
+    NotifierProvider<PremiumPurchaseController, PremiumPurchaseState>(
+      PremiumPurchaseController.new,
+    );
+
+class PremiumPurchaseController extends Notifier<PremiumPurchaseState> {
+  StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
+  late InAppPurchaseGateway _gateway;
+  var _disposed = false;
+
+  @override
+  PremiumPurchaseState build() {
+    _gateway = ref.watch(inAppPurchaseGatewayProvider);
+    _purchaseSubscription = _gateway.purchaseStream.listen(
+      _handlePurchaseUpdates,
+      onError: _handlePurchaseStreamError,
+    );
+    ref.onDispose(() {
+      _disposed = true;
+      unawaited(_purchaseSubscription?.cancel());
+    });
+    unawaited(Future<void>.microtask(reload));
+    return const PremiumPurchaseState.loading();
+  }
+
+  Future<void> reload() async {
+    state = const PremiumPurchaseState.loading();
 
     try {
-      _isStoreAvailable = await _store.isAvailable();
-      if (!_isStoreAvailable) {
-        _removeAdsProduct = null;
-        _message = 'ストアに接続できません';
+      final available = await _gateway.isAvailable();
+      if (_disposed) return;
+
+      if (!available) {
+        state = const PremiumPurchaseState(
+          status: PremiumPurchaseStatus.unavailable,
+          message: 'App Store に接続できませんでした。通信状態を確認してください。',
+        );
         return;
       }
 
-      final response = await _store.queryProductDetails(
-        PremiumConfig.removeAdsProductIds,
+      final response = await _gateway.queryProductDetails({
+        PremiumConfig.removeAdsProductId,
+      });
+      if (_disposed) return;
+
+      final queryError = response.error;
+      if (queryError != null) {
+        _logIapError('query-product', queryError);
+      }
+
+      final product = response.productDetails
+          .where((item) => item.id == PremiumConfig.removeAdsProductId)
+          .firstOrNull;
+      if (product == null) {
+        state = PremiumPurchaseState(
+          status: PremiumPurchaseStatus.error,
+          message: '広告非表示の商品情報を取得できませんでした。時間をおいて再度お試しください。',
+          errorCode: queryError == null
+              ? 'app_store/product-not-found'
+              : _iapDiagnosticCode(queryError),
+        );
+        return;
+      }
+
+      state = PremiumPurchaseState(
+        status: PremiumPurchaseStatus.ready,
+        product: product,
       );
-      final product = _findRemoveAdsProduct(response.productDetails);
-      if (product != null) {
-        _removeAdsProduct = product;
-        return;
-      }
-
-      _removeAdsProduct = null;
-      if (response.error != null) {
-        debugPrint('Remove ads product query failed: ${response.error}');
-        _message = '商品情報の取得に失敗しました。時間をおいて再取得してください';
-        return;
-      }
-
-      final notFoundIds = response.notFoundIDs.toSet();
-      if (PremiumConfig.removeAdsProductIds.every(notFoundIds.contains) ||
-          response.productDetails.isEmpty) {
-        _message = '広告非表示の商品を取得できません。ストア設定を確認してください';
-        return;
-      }
-
-      _message = '広告非表示の商品情報が見つかりません';
     } catch (error, stackTrace) {
-      debugPrint('Remove ads product query failed: $error\n$stackTrace');
-      _removeAdsProduct = null;
-      _message = '商品情報の取得に失敗しました。時間をおいて再取得してください';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _logUnexpectedError('query-product', error, stackTrace);
+      if (_disposed) return;
+      state = PremiumPurchaseState(
+        status: PremiumPurchaseStatus.error,
+        message: '購入情報の読み込みに失敗しました。時間をおいて再度お試しください。',
+        errorCode: _unexpectedDiagnosticCode(error),
+      );
     }
   }
 
-  ProductDetails? _findRemoveAdsProduct(List<ProductDetails> products) {
-    for (final id in PremiumConfig.removeAdsProductIds) {
-      for (final product in products) {
-        if (product.id == id) return product;
-      }
-    }
-    return null;
-  }
-
-  Future<String?> buyRemoveAds() async {
-    if (_isLoading) return null;
-    if (_removeAdsProduct == null) {
-      await loadProducts();
-    }
-    final product = _removeAdsProduct;
-    if (!_isStoreAvailable || product == null) {
-      return _message ?? '商品情報を取得できません';
+  Future<void> purchase() async {
+    final product = state.product;
+    if (!PremiumConfig.monetizationEnabled ||
+        !state.canPurchase ||
+        product == null) {
+      return;
     }
 
-    _isLoading = true;
-    _message = null;
-    notifyListeners();
-
-    final started = await _store.buyNonConsumable(product);
-    if (!started) {
-      _isLoading = false;
-      _message = '購入処理を開始できませんでした';
-      notifyListeners();
-      return _message;
-    }
-    return '購入処理を開始しました';
-  }
-
-  Future<String?> restorePurchases() async {
-    if (_isLoading) return null;
-
-    _isLoading = true;
-    _message = null;
-    notifyListeners();
+    state = PremiumPurchaseState(
+      status: PremiumPurchaseStatus.purchasing,
+      product: product,
+    );
 
     try {
-      await _store.restorePurchases();
-      _message = '購入情報を確認しています';
-      return _message;
-    } catch (_) {
-      _isLoading = false;
-      _message = '購入の復元に失敗しました';
-      notifyListeners();
-      return _message;
+      final started = await _gateway.buyNonConsumable(product);
+      if (_disposed) return;
+      if (!started) {
+        state = PremiumPurchaseState(
+          status: PremiumPurchaseStatus.ready,
+          product: product,
+          message: '購入を開始できませんでした。もう一度お試しください。',
+          errorCode: 'purchase/not-started',
+        );
+      }
+    } catch (error, stackTrace) {
+      _logUnexpectedError('start-purchase', error, stackTrace);
+      if (_disposed) return;
+      state = PremiumPurchaseState(
+        status: PremiumPurchaseStatus.ready,
+        product: product,
+        message: '購入を開始できませんでした。もう一度お試しください。',
+        errorCode: _unexpectedDiagnosticCode(error),
+      );
+    }
+  }
+
+  Future<void> restore() async {
+    if (state.status == PremiumPurchaseStatus.purchasing ||
+        state.status == PremiumPurchaseStatus.restoring) {
+      return;
+    }
+
+    final product = state.product;
+    state = PremiumPurchaseState(
+      status: PremiumPurchaseStatus.restoring,
+      product: product,
+    );
+
+    try {
+      await _gateway.restorePurchases();
+      if (_disposed || state.status != PremiumPurchaseStatus.restoring) return;
+      state = PremiumPurchaseState(
+        status: product == null
+            ? PremiumPurchaseStatus.error
+            : PremiumPurchaseStatus.ready,
+        product: product,
+        message: '購入履歴を確認しています。復元結果が反映されるまでお待ちください。',
+      );
+    } catch (error, stackTrace) {
+      _logUnexpectedError('restore', error, stackTrace);
+      if (_disposed) return;
+      state = PremiumPurchaseState(
+        status: product == null
+            ? PremiumPurchaseStatus.error
+            : PremiumPurchaseStatus.ready,
+        product: product,
+        message: '購入の復元に失敗しました。もう一度お試しください。',
+        errorCode: _unexpectedDiagnosticCode(error),
+      );
     }
   }
 
   Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
-      if (!PremiumConfig.removeAdsProductIds.contains(purchase.productID)) {
-        await _completePurchaseIfNeeded(purchase);
-        continue;
-      }
+      if (purchase.productID != PremiumConfig.removeAdsProductId) continue;
 
       switch (purchase.status) {
         case PurchaseStatus.pending:
-          _isLoading = true;
-          _message = '購入処理を確認しています';
-          break;
+          state = PremiumPurchaseState(
+            status: PremiumPurchaseStatus.purchasing,
+            product: state.product,
+            message: 'App Store で購入を確認しています。',
+          );
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
-          await _ref
-              .read(appSettingsControllerProvider.notifier)
-              .updatePremiumStatus(true);
-          _isLoading = false;
-          _message = '広告非表示が有効になりました';
-          break;
+          await _activatePremium(purchase);
         case PurchaseStatus.error:
-          _isLoading = false;
-          _message = purchase.error?.message ?? '購入処理に失敗しました';
-          break;
+          final purchaseError = purchase.error;
+          if (purchaseError != null) {
+            _logIapError('purchase-update', purchaseError);
+          }
+          state = PremiumPurchaseState(
+            status: state.product == null
+                ? PremiumPurchaseStatus.error
+                : PremiumPurchaseStatus.ready,
+            product: state.product,
+            message: '購入を完了できませんでした。もう一度お試しください。',
+            errorCode: purchaseError == null
+                ? 'app_store/unknown'
+                : _iapDiagnosticCode(purchaseError),
+          );
         case PurchaseStatus.canceled:
-          _isLoading = false;
-          _message = '購入をキャンセルしました';
-          break;
+          state = PremiumPurchaseState(
+            status: state.product == null
+                ? PremiumPurchaseStatus.error
+                : PremiumPurchaseStatus.ready,
+            product: state.product,
+            message: '購入はキャンセルされました。',
+          );
       }
-
-      await _completePurchaseIfNeeded(purchase);
     }
-    notifyListeners();
   }
 
-  Future<void> _completePurchaseIfNeeded(PurchaseDetails purchase) async {
-    if (!purchase.pendingCompletePurchase) return;
-
+  Future<void> _activatePremium(PurchaseDetails purchase) async {
     try {
-      await _store.completePurchase(purchase);
+      await ref.read(appSettingsRepositoryProvider).updatePremiumStatus(true);
+      if (purchase.pendingCompletePurchase) {
+        await _gateway.completePurchase(purchase);
+      }
+      if (_disposed) return;
+      state = PremiumPurchaseState(
+        status: PremiumPurchaseStatus.purchased,
+        product: state.product,
+        message: '広告非表示が有効になりました。',
+      );
     } catch (error, stackTrace) {
-      debugPrint('Failed to complete purchase: $error\n$stackTrace');
+      _logUnexpectedError('activate-premium', error, stackTrace);
+      if (_disposed) return;
+      state = PremiumPurchaseState(
+        status: PremiumPurchaseStatus.error,
+        product: state.product,
+        message: '購入内容をアプリに反映できませんでした。購入を復元してください。',
+        errorCode: _unexpectedDiagnosticCode(error),
+      );
     }
   }
 
-  @override
-  void dispose() {
-    unawaited(_subscription?.cancel());
-    super.dispose();
+  void _handlePurchaseStreamError(Object error, StackTrace stackTrace) {
+    _logUnexpectedError('purchase-stream', error, stackTrace);
+    if (_disposed) return;
+    state = PremiumPurchaseState(
+      status: state.product == null
+          ? PremiumPurchaseStatus.error
+          : PremiumPurchaseStatus.ready,
+      product: state.product,
+      message: '購入状態を確認できませんでした。もう一度お試しください。',
+      errorCode: _unexpectedDiagnosticCode(error),
+    );
+  }
+
+  String _iapDiagnosticCode(IAPError error) {
+    return '${error.source}/${error.code}';
+  }
+
+  String _unexpectedDiagnosticCode(Object error) {
+    if (error is IAPError) return _iapDiagnosticCode(error);
+    if (error is PlatformException) return 'platform/${error.code}';
+    return 'purchase/${error.runtimeType}';
+  }
+
+  void _logIapError(String operation, IAPError error) {
+    debugPrint(
+      'IAP error operation=$operation source=${error.source} '
+      'code=${error.code} message=${error.message} details=${error.details}',
+    );
+  }
+
+  void _logUnexpectedError(
+    String operation,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    if (error is IAPError) {
+      _logIapError(operation, error);
+      return;
+    }
+    debugPrint('IAP error operation=$operation error=$error\n$stackTrace');
   }
 }

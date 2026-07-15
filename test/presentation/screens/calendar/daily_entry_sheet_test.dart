@@ -39,6 +39,13 @@ void main() {
     );
   }
 
+  Future<void> tapSwitchTile(WidgetTester tester, String label) async {
+    final tile = find.widgetWithText(SwitchListTile, label);
+    final switchTile = tester.widget<SwitchListTile>(tile);
+    switchTile.onChanged?.call(!switchTile.value);
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('勤務スイッチのみ ON で保存 → WorkSession のみ作成', (
     WidgetTester tester,
   ) async {
@@ -63,10 +70,7 @@ void main() {
     final switches = find.byType(Switch);
     expect(switches, findsWidgets); // 翌日またぐ, 勤務, 売上 = 3つあるはず
     // SwitchListTile を探す
-    final revenueSwitchTile = find.widgetWithText(SwitchListTile, '売上記録を入力する');
-    await tester.ensureVisible(revenueSwitchTile);
-    await tester.tap(revenueSwitchTile);
-    await tester.pumpAndSettle();
+    await tapSwitchTile(tester, '売上記録を入力する');
 
     // 勤務記録の休憩時間を変更しておく
     await tester.enterText(findTextFieldByLabel('休憩時間'), '120');
@@ -105,13 +109,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 勤務スイッチを OFF にする
-    final workSessionSwitchTile = find.widgetWithText(
-      SwitchListTile,
-      '勤務記録を入力する',
-    );
-    await tester.ensureVisible(workSessionSwitchTile);
-    await tester.tap(workSessionSwitchTile);
-    await tester.pumpAndSettle();
+    await tapSwitchTile(tester, '勤務記録を入力する');
 
     // 売上の総営収を入力
     await tester.enterText(findTextFieldByLabel('総営収（任意）'), '55000');
@@ -187,13 +185,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // 両方 OFF
-    final workSwitch = find.widgetWithText(SwitchListTile, '勤務記録を入力する');
-    final revSwitch = find.widgetWithText(SwitchListTile, '売上記録を入力する');
-    await tester.ensureVisible(workSwitch);
-    await tester.tap(workSwitch);
-    await tester.ensureVisible(revSwitch);
-    await tester.tap(revSwitch);
-    await tester.pumpAndSettle();
+    await tapSwitchTile(tester, '勤務記録を入力する');
+    await tapSwitchTile(tester, '売上記録を入力する');
 
     await tester.tap(find.text('保存'));
     await tester.pump();
@@ -382,5 +375,41 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(focusNode.hasFocus, false);
+  });
+
+  testWidgets('狭い画面では長いラベルの入力欄を1列に並べる', (tester) async {
+    final container = ProviderContainer(
+      overrides: [appDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(body: DailyEntrySheet(date: DateTime(2026, 6, 17))),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final grossField = find.ancestor(
+      of: find.text('総営収（任意）'),
+      matching: find.byType(LabeledTextField),
+    );
+    final taxField = find.ancestor(
+      of: find.text('税抜営収（任意）'),
+      matching: find.byType(LabeledTextField),
+    );
+
+    expect(
+      tester.getTopLeft(taxField).dy,
+      greaterThan(tester.getTopLeft(grossField).dy),
+    );
+    expect(tester.takeException(), null);
   });
 }

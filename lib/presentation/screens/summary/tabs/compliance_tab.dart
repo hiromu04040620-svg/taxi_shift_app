@@ -7,7 +7,9 @@ import '../../../../domain/models/improvement_warning.dart';
 import '../../../providers/improvement_warnings_provider.dart';
 import '../../../providers/selected_month_provider.dart';
 import '../../../providers/work_session_queries_provider.dart';
+import '../../../widgets/constrained_list_view.dart';
 import '../../../widgets/kpi_card.dart';
+import '../../../widgets/responsive_kpi_grid.dart';
 
 class ComplianceTab extends ConsumerWidget {
   const ComplianceTab({super.key});
@@ -42,17 +44,10 @@ class ComplianceTab extends ConsumerWidget {
         final remaining262 = 262.0 - totalRestraintHours;
         final remaining270 = 270.0 - totalRestraintHours;
 
-        return ListView(
-          padding: const EdgeInsets.all(AppSpacing.md),
+        return ConstrainedListView(
           children: [
             // 数値表示
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.sm,
-              crossAxisSpacing: AppSpacing.sm,
-              childAspectRatio: 1.5,
+            ResponsiveKpiGrid(
               children: [
                 KpiCard(
                   label: '拘束時間合計',
@@ -101,7 +96,7 @@ class ComplianceTab extends ConsumerWidget {
                     ),
                     Column(
                       children: [
-                        Text('Critical', style: textTheme.labelMedium),
+                        Text('重大', style: textTheme.labelMedium),
                         Text(
                           '$criticalCount件',
                           style: textTheme.headlineSmall?.copyWith(
@@ -113,7 +108,7 @@ class ComplianceTab extends ConsumerWidget {
                     ),
                     Column(
                       children: [
-                        Text('Warning', style: textTheme.labelMedium),
+                        Text('注意', style: textTheme.labelMedium),
                         Text(
                           '$warningCount件',
                           style: textTheme.headlineSmall?.copyWith(
@@ -138,10 +133,10 @@ class ComplianceTab extends ConsumerWidget {
                 child: Center(
                   child: Column(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.check_circle,
-                        color: Colors.green,
                         size: AppIconSize.xl,
+                        color: colorScheme.primary,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text('今月は問題ありません', style: textTheme.bodyLarge),

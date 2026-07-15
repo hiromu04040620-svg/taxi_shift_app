@@ -9,7 +9,9 @@ import '../../../../domain/models/commission_config.dart';
 import '../../../providers/app_settings_queries_provider.dart';
 import '../../../providers/revenue_queries_provider.dart';
 import '../../../providers/selected_month_provider.dart';
+import '../../../widgets/constrained_list_view.dart';
 import '../../../widgets/kpi_card.dart';
+import '../../../widgets/responsive_kpi_grid.dart';
 
 class RevenueTab extends ConsumerWidget {
   const RevenueTab({super.key});
@@ -39,17 +41,17 @@ class RevenueTab extends ConsumerWidget {
     return summaryAsync.when(
       data: (summary) {
         if (summary.totalShiftsCount == 0) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.receipt_long,
                   size: AppIconSize.xl,
-                  color: Colors.grey,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                SizedBox(height: AppSpacing.md),
-                Text('まだ売上が記録されていません'),
+                const SizedBox(height: AppSpacing.md),
+                const Text('まだ売上が記録されていません'),
               ],
             ),
           );
@@ -57,16 +59,9 @@ class RevenueTab extends ConsumerWidget {
 
         final numberFormat = NumberFormat('#,###');
 
-        return ListView(
-          padding: const EdgeInsets.all(AppSpacing.md),
+        return ConstrainedListView(
           children: [
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.sm,
-              crossAxisSpacing: AppSpacing.sm,
-              childAspectRatio: 1.5,
+            ResponsiveKpiGrid(
               children: [
                 KpiCard(
                   label: '総営収',
@@ -224,7 +219,7 @@ class RevenueTab extends ConsumerWidget {
                                   ? Icons.check_circle
                                   : Icons.cancel,
                               color: commissionResult.isAboveAshikiri
-                                  ? Colors.green
+                                  ? Theme.of(context).colorScheme.primary
                                   : Theme.of(context).colorScheme.error,
                             ),
                           ],

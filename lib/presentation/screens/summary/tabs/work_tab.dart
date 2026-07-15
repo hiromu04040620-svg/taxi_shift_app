@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../providers/selected_month_provider.dart';
 import '../../../providers/work_session_queries_provider.dart';
+import '../../../widgets/constrained_list_view.dart';
 import '../../../widgets/kpi_card.dart';
+import '../../../widgets/responsive_kpi_grid.dart';
 
 class WorkTab extends ConsumerWidget {
   const WorkTab({super.key});
@@ -25,17 +27,17 @@ class WorkTab extends ConsumerWidget {
     return sessionsAsync.when(
       data: (sessions) {
         if (sessions.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.work_history,
                   size: AppIconSize.xl,
-                  color: Colors.grey,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                SizedBox(height: AppSpacing.md),
-                Text('まだ勤務記録がありません'),
+                const SizedBox(height: AppSpacing.md),
+                const Text('まだ勤務記録がありません'),
               ],
             ),
           );
@@ -66,16 +68,9 @@ class WorkTab extends ConsumerWidget {
           cumulativeWorkingSpots.add(FlSpot(x, currentCumulativeWorking));
         }
 
-        return ListView(
-          padding: const EdgeInsets.all(AppSpacing.md),
+        return ConstrainedListView(
           children: [
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.sm,
-              crossAxisSpacing: AppSpacing.sm,
-              childAspectRatio: 1.5,
+            ResponsiveKpiGrid(
               children: [
                 KpiCard(
                   label: '月総拘束時間',
@@ -115,8 +110,12 @@ class WorkTab extends ConsumerWidget {
                         showTitles: true,
                         interval: 5,
                         getTitlesWidget: (value, meta) {
+                          final day = value.toInt();
+                          if (day != 1 && day != 10 && day != 20 && day != 30) {
+                            return const SizedBox.shrink();
+                          }
                           return Text(
-                            '${value.toInt()}日',
+                            '$day日',
                             style: Theme.of(context).textTheme.labelSmall,
                           );
                         },
@@ -182,8 +181,12 @@ class WorkTab extends ConsumerWidget {
                         showTitles: true,
                         interval: 5,
                         getTitlesWidget: (value, meta) {
+                          final day = value.toInt();
+                          if (day != 1 && day != 10 && day != 20 && day != 30) {
+                            return const SizedBox.shrink();
+                          }
                           return Text(
-                            '${value.toInt()}日',
+                            '$day日',
                             style: Theme.of(context).textTheme.labelSmall,
                           );
                         },

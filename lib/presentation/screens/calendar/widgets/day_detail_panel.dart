@@ -5,14 +5,12 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../domain/models/improvement_warning.dart';
 import '../../../../domain/models/shift_type.dart';
-import '../../../providers/app_settings_queries_provider.dart';
 import '../../../providers/improvement_warnings_provider.dart';
-import '../../../providers/paywall_prompt_provider.dart';
 import '../../../providers/revenue_queries_provider.dart';
 import '../../../providers/shift_queries_provider.dart';
 import '../../../providers/work_session_queries_provider.dart';
+import '../../../utils/number_format.dart';
 import '../../../utils/shift_type_display.dart';
-import '../../paywall/paywall_sheet.dart';
 import 'daily_entry_sheet.dart';
 import 'shift_override_sheet.dart';
 
@@ -21,175 +19,122 @@ class DayDetailPanel extends ConsumerWidget {
 
   final DateTime date;
 
-  Future<void> _maybeShowPaywallAfterSave(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final settings = ref.read(appSettingsProvider).value;
-    if (settings?.isPremium == true) return;
-    final promptSession = ref.read(paywallPromptSessionProvider);
-    if (promptSession.hasShown) return;
-
-    promptSession.markShown();
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      builder: (context) => const PaywallSheet(openedAfterSave: true),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-
     final dateLabel = DateFormat('yyyy年M月d日 (E)', 'ja_JP').format(date);
-
-    // Watch providers
     final shiftTypeAsync = ref.watch(shiftTypeForDateProvider(date));
     final sessionAsync = ref.watch(workSessionForDateProvider(date));
     final revenueAsync = ref.watch(revenueForDateProvider(date));
     final warningsAsync = ref.watch(sessionWarningsProvider(date));
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.md,
-        AppSpacing.md,
-      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(dateLabel, style: textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.md),
-
-          // シフト種別バッジ
-          shiftTypeAsync.when(
-            data: (type) => _buildShiftBadge(context, type),
-            loading: () => const LinearProgressIndicator(),
-            error: (e, st) =>
-                Text('エラー: $e', style: TextStyle(color: colorScheme.error)),
+          Row(
+            children: [
+              Expanded(child: Text(dateLabel, style: textTheme.titleMedium)),
+              shiftTypeAsync.when(
+                data: (type) => _ShiftBadge(shiftType: type),
+                loading: () => const SizedBox.square(
+                  dimension: AppIconSize.md,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                error: (_, _) =>
+                    Icon(Icons.error_outline, color: colorScheme.error),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.md),
-
-          // WorkSession 情報
           sessionAsync.when(
             data: (session) {
               if (session == null) {
-                return Text('実績未登録', style: textTheme.bodyMedium);
+                return const _DetailStatusRow(
+                  icon: Icons.schedule_outlined,
+                  label: '勤務実績',
+                  value: '未登録',
+                  isEmpty: true,
+                );
               }
-              final startStr = DateFormat.Hm(
+              final start = DateFormat.Hm(
                 'ja_JP',
               ).format(session.startDateTime);
-              final endStr = DateFormat.Hm('ja_JP').format(session.endDateTime);
-              return Text(
-                '出勤: $startStr  退勤: $endStr  休憩: ${session.restMinutes}分',
-                style: textTheme.bodyMedium,
+              final end = DateFormat.Hm('ja_JP').format(session.endDateTime);
+              return _DetailStatusRow(
+                icon: Icons.schedule_outlined,
+                label: '勤務実績',
+                value: '$start - $end  休憩 ${session.restMinutes}分',
               );
             },
-            loading: () => const SizedBox.shrink(),
-            error: (e, st) =>
-                Text('エラー: $e', style: TextStyle(color: colorScheme.error)),
+            loading: () => const LinearProgressIndicator(),
+            error: (_, _) => const _DetailStatusRow(
+              icon: Icons.error_outline,
+              label: '勤務実績',
+              value: '読み込めませんでした',
+              isEmpty: true,
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Revenue 情報
+          const SizedBox(height: AppSpacing.sm),
           revenueAsync.when(
             data: (revenue) {
               if (revenue == null) {
-                return Text('売上未登録', style: textTheme.bodyMedium);
+                return const _DetailStatusRow(
+                  icon: Icons.payments_outlined,
+                  label: '売上',
+                  value: '未登録',
+                  isEmpty: true,
+                );
               }
-              return Text(
-                '総営収: ￥${revenue.grossRevenue}  乗車回数: ${revenue.ridesCount}回',
-                style: textTheme.bodyMedium,
+              return _DetailStatusRow(
+                icon: Icons.payments_outlined,
+                label: '売上',
+                value:
+                    '${AppNumberFormat.currency(revenue.grossRevenue)}  ${revenue.ridesCount}回',
               );
             },
-            loading: () => const SizedBox.shrink(),
-            error: (e, st) =>
-                Text('エラー: $e', style: TextStyle(color: colorScheme.error)),
+            loading: () => const LinearProgressIndicator(),
+            error: (_, _) => const _DetailStatusRow(
+              icon: Icons.error_outline,
+              label: '売上',
+              value: '読み込めませんでした',
+              isEmpty: true,
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
-
-          // 改善基準警告
           warningsAsync.when(
             data: (warnings) {
               if (warnings.isEmpty) return const SizedBox.shrink();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: warnings.map((w) {
-                  final isWarning = w.level == WarningLevel.warning;
-                  final bgColor = isWarning
-                      ? colorScheme.errorContainer
-                      : colorScheme.tertiaryContainer;
-                  final fgColor = isWarning
-                      ? colorScheme.onErrorContainer
-                      : colorScheme.onTertiaryContainer;
-
-                  return Card(
-                    color: bgColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      child: Text(
-                        w.message,
-                        style: textTheme.bodySmall?.copyWith(color: fgColor),
-                      ),
-                    ),
-                  );
-                }).toList(),
+              return Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: Column(
+                  children: warnings
+                      .map((warning) => _WarningMessage(warning: warning))
+                      .toList(),
+                ),
               );
             },
             loading: () => const SizedBox.shrink(),
-            error: (e, st) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
-
           const SizedBox(height: AppSpacing.md),
-
-          // アクションボタン
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            alignment: WrapAlignment.center,
+          Row(
             children: [
-              FilledButton.icon(
-                onPressed: () {
-                  showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(AppRadius.lg),
-                      ),
-                    ),
-                    builder: (context) => ShiftOverrideSheet(date: date),
-                  );
-                },
-                icon: const Icon(Icons.edit_calendar),
-                label: const Text('シフト変更'),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showShiftOverride(context),
+                  icon: const Icon(Icons.edit_calendar_outlined),
+                  label: const Text('シフト変更'),
+                ),
               ),
-              FilledButton.tonal(
-                onPressed: () async {
-                  final saved = await showModalBottomSheet<bool>(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(AppRadius.lg),
-                      ),
-                    ),
-                    builder: (context) => DailyEntrySheet(date: date),
-                  );
-                  if (saved == true && context.mounted) {
-                    await _maybeShowPaywallAfterSave(context, ref);
-                  }
-                },
-                child: const Text('記録する'),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => _showDailyEntry(context),
+                  icon: const Icon(Icons.edit_note_outlined),
+                  label: const Text('記録する'),
+                ),
               ),
             ],
           ),
@@ -198,34 +143,164 @@ class DayDetailPanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildShiftBadge(BuildContext context, ShiftType? shiftType) {
+  void _showShiftOverride(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
+      ),
+      builder: (context) => ShiftOverrideSheet(date: date),
+    );
+  }
+
+  Future<void> _showDailyEntry(BuildContext context) async {
+    await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
+      ),
+      builder: (context) => DailyEntrySheet(date: date),
+    );
+  }
+}
+
+class _DetailStatusRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isEmpty;
+
+  const _DetailStatusRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.isEmpty = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: colorScheme.primary),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: isEmpty
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ShiftBadge extends StatelessWidget {
+  final ShiftType? shiftType;
+
+  const _ShiftBadge({required this.shiftType});
+
+  @override
+  Widget build(BuildContext context) {
     if (shiftType == null) {
-      return Text('シフト未設定', style: textTheme.bodyMedium);
+      return Text(
+        '未設定',
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      );
     }
     final colorScheme = Theme.of(context).colorScheme;
-    final bgColor = ShiftTypeDisplay.backgroundColor(shiftType, colorScheme);
-    final fgColor = ShiftTypeDisplay.foregroundColor(shiftType, colorScheme);
-    final label = ShiftTypeDisplay.fullLabel(shiftType);
+    final background = ShiftTypeDisplay.backgroundColor(shiftType, colorScheme);
+    final foreground = ShiftTypeDisplay.foregroundColor(shiftType, colorScheme);
 
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
+        child: Text(
+          ShiftTypeDisplay.fullLabel(shiftType),
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: foreground,
+            fontWeight: FontWeight.bold,
           ),
-          child: Text(
-            label,
-            style: textTheme.labelMedium?.copyWith(
-              color: fgColor,
-              fontWeight: FontWeight.bold,
-            ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WarningMessage extends StatelessWidget {
+  final ImprovementWarning warning;
+
+  const _WarningMessage({required this.warning});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isCritical = warning.level == WarningLevel.critical;
+    final background = isCritical
+        ? colorScheme.errorContainer
+        : colorScheme.tertiaryContainer;
+    final foreground = isCritical
+        ? colorScheme.onErrorContainer
+        : colorScheme.onTertiaryContainer;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Material(
+        color: background,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Row(
+            children: [
+              Icon(Icons.warning_amber, color: foreground),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  warning.message,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: foreground),
+                ),
+              ),
+            ],
           ),
         ),
       ),
