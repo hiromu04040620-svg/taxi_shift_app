@@ -11,6 +11,19 @@ class AppStoreConnectSubmissionGateTest < Minitest::Test
     assert_empty(gate.blockers)
   end
 
+  def test_iap_already_waiting_for_review_has_no_iap_blockers
+    snapshot = ready_snapshot
+    snapshot[:iap][:state] = "WAITING_FOR_REVIEW"
+    snapshot[:iap][:localizations][0][:state] = "WAITING_FOR_REVIEW"
+
+    blockers = TaxiShift::AppStoreConnect::SubmissionGate.new(
+      snapshot,
+      first_iap_associated: true,
+    ).blockers
+
+    assert_empty(blockers)
+  end
+
   def test_rejected_iap_and_localization_are_blockers
     snapshot = ready_snapshot
     snapshot[:iap][:state] = "DEVELOPER_ACTION_NEEDED"

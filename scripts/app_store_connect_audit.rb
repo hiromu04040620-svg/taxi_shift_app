@@ -310,8 +310,13 @@ module TaxiShift
     end
 
     class SubmissionGate
-      READY_IAP_STATE = "READY_TO_SUBMIT"
-      READY_LOCALIZATION_STATES = %w[READY_TO_SUBMIT APPROVED].freeze
+      READY_IAP_STATES = %w[
+        READY_TO_SUBMIT
+        WAITING_FOR_REVIEW
+        IN_REVIEW
+        APPROVED
+      ].freeze
+      READY_LOCALIZATION_STATES = READY_IAP_STATES
       VIDEO_EXTENSIONS = %w[.m4v .mov .mp4].freeze
 
       def initialize(snapshot, first_iap_associated:)
@@ -354,7 +359,7 @@ module TaxiShift
       def append_iap_issues(issues)
         iap = @snapshot[:iap] || {}
         product_id = iap[:product_id] || IAP_PRODUCT_ID
-        if iap[:state] != READY_IAP_STATE
+        unless READY_IAP_STATES.include?(iap[:state])
           issues << "#{product_id} の状態が READY_TO_SUBMIT ではありません: #{iap[:state] || "不明"}"
         end
 
