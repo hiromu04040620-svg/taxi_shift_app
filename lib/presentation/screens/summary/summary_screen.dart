@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../providers/ad_runtime_provider.dart';
 import '../../providers/ads_provider.dart';
 import '../../providers/selected_month_provider.dart';
 import '../../utils/year_month_picker.dart';
@@ -22,6 +22,10 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
   Widget build(BuildContext context) {
     final selectedMonth = ref.watch(selectedMonthProvider);
     final title = '${selectedMonth.year}年${selectedMonth.month}月';
+    final adsEnabled = ref.watch(adsEnabledProvider);
+    final adUnitId = ref.watch(
+      adRuntimeControllerProvider.select((state) => state.adUnitId),
+    );
 
     return DefaultTabController(
       length: 3,
@@ -53,8 +57,8 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
         body: const TabBarView(
           children: [RevenueTab(), WorkTab(), ComplianceTab()],
         ),
-        bottomNavigationBar: ref.watch(adsEnabledProvider)
-            ? BannerAdWidget(onPressed: () => context.push('/premium'))
+        bottomNavigationBar: adsEnabled && adUnitId != null
+            ? BannerAdWidget(adUnitId: adUnitId)
             : null,
       ),
     );

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/design_tokens.dart';
+import '../../providers/ad_runtime_provider.dart';
 import '../../providers/ads_provider.dart';
 import '../../widgets/banner_ad_widget.dart';
 import 'widgets/day_detail_panel.dart';
@@ -56,6 +57,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final adsEnabled = ref.watch(adsEnabledProvider);
+    final adUnitId = ref.watch(
+      adRuntimeControllerProvider.select((state) => state.adUnitId),
+    );
 
     final headerTitle = DateFormat('yyyy年 M月', 'ja_JP').format(_focusedMonth);
 
@@ -126,8 +131,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           );
         },
       ),
-      bottomNavigationBar: ref.watch(adsEnabledProvider)
-          ? BannerAdWidget(onPressed: () => context.push('/premium'))
+      bottomNavigationBar: adsEnabled && adUnitId != null
+          ? BannerAdWidget(adUnitId: adUnitId)
           : null,
     );
   }
