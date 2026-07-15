@@ -1,13 +1,20 @@
-The non-consumable In-App Purchase is implemented with StoreKit and is available without signing in.
+Build 1.0.0 (11) implements Google Mobile Ads banners and the non-consumable In-App Purchase with StoreKit. The app is fully available without signing in.
 
 Product ID: remove_ads
 Display name: 広告非表示
 
+Advertising and privacy:
+- Banner ads appear only at the bottom of the Calendar and Summary screens.
+- App Review, TestFlight, Sandbox receipts, and local builds use Google's official iOS test banner ad unit. App Store production receipts use the production banner ad unit.
+- The app updates UMP consent information before requesting ads and shows any required regional consent form.
+- On iOS, the ATT request is shown only when authorization is not determined. Denying ATT does not restrict any app feature.
+- When required by UMP, users can reopen "広告のプライバシー設定" from Settings.
+
 Purchase steps:
 1. Launch TaxiShift from the Home Screen.
-2. Tap the ad area at the bottom of the Calendar screen, or open Settings and tap "広告非表示".
-3. On the Premium screen, confirm that the App Store price is displayed.
-4. Tap the purchase button and complete the Sandbox purchase.
-5. The ads are removed after the transaction completes. "購入を復元" is available on the same screen.
-
-The attached physical-device recording begins on the iOS Home Screen and demonstrates the calendar, daily entry, summary, and successful Sandbox purchase flow.
+2. Confirm the Google test banner at the bottom of the Calendar or Summary screen.
+3. Open Settings and tap "広告非表示".
+4. On the Premium screen, confirm that the App Store price is displayed.
+5. Tap "広告非表示を購入" and complete the Sandbox purchase.
+6. Return to the Calendar and Summary screens. The banner and its space disappear immediately after the transaction completes.
+7. "購入を復元" is available on the same Premium screen.
