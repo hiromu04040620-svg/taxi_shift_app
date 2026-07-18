@@ -655,6 +655,7 @@ class _DailyEntrySheetState extends ConsumerState<DailyEntrySheet> {
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Center(
+                  heightFactor: 1,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(
                       maxWidth: AppLayout.contentMaxWidth,

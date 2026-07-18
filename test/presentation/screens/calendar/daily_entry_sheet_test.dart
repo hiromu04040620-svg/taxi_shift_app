@@ -412,4 +412,51 @@ void main() {
     );
     expect(tester.takeException(), null);
   });
+
+  testWidgets('実際のモーダル表示でも記録フォーム本文を操作できる', (tester) async {
+    final container = ProviderContainer(
+      overrides: [appDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(430, 932);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showModalBottomSheet<bool>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  builder: (context) =>
+                      DailyEntrySheet(date: DateTime(2026, 7, 18)),
+                ),
+                child: const Text('記録フォームを開く'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('記録フォームを開く'));
+    await tester.pumpAndSettle();
+
+    final workSectionTitle = find.text('勤務記録を入力する');
+    final saveButton = find.widgetWithText(FilledButton, '保存');
+
+    expect(workSectionTitle, findsOneWidget);
+    expect(workSectionTitle.hitTestable(), findsOneWidget);
+    expect(
+      tester.getCenter(workSectionTitle).dy,
+      lessThan(tester.getCenter(saveButton).dy),
+    );
+    expect(tester.takeException(), null);
+  });
 }
