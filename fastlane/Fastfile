@@ -141,10 +141,18 @@ def wait_for_uploaded_build(app:, build_number:, timeout: 1800, interval: 30)
   end
 end
 
+def audit_ipa_privacy_manifest
+  UI.user_error!("IPA was not generated at #{IPA_PATH}") unless File.exist?(IPA_PATH)
+  Bundler.with_unbundled_env do
+    sh("ruby", PRIVACY_AUDIT_PATH, "--ipa", IPA_PATH)
+  end
+end
+
 def run_asc_audit(gate: false, refresh_iap_localization: false)
   ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"] ||= DEFAULT_ASC_KEY_ID
   ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] ||= DEFAULT_ASC_ISSUER_ID
   ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] ||= DEFAULT_ASC_KEY_PATH
+  ENV["ASC_APP_VERSION"] ||= APP_STORE_VERSION
   Dir.chdir(REPO_ROOT) do
     command = ["bundle", "exec", "ruby", ASC_AUDIT_PATH]
     command << "--refresh-iap-localization" if refresh_iap_localization
@@ -184,15 +192,14 @@ platform :ios do
       )
     end
     UI.user_error!("IPA was not generated at #{IPA_PATH}") unless File.exist?(IPA_PATH)
-    Bundler.with_unbundled_env do
-      sh("ruby", PRIVACY_AUDIT_PATH, "--ipa", IPA_PATH)
-    end
+    audit_ipa_privacy_manifest
     UI.success("Built #{IPA_PATH}")
   end
 
   desc "Build and upload IPA to App Store Connect / TestFlight"
   lane :upload_testflight do |options|
     build_ipa unless options[:skip_build]
+    audit_ipa_privacy_manifest
 
     api_key = app_store_connect_api_key_from_env
     upload_options = {
@@ -304,11 +311,12 @@ platform :ios do
         "初回IAP紐付け確認後にASC_FIRST_IAP_ASSOCIATED=trueを付けて実行してください",
       )
     end
+    app = connect_api_app
+    version = editable_app_store_version(app)
+    ENV["ASC_APP_VERSION_ID"] = version.id
     sync_review_notes
     asc_preflight
 
-    app = connect_api_app
-    version = editable_app_store_version(app)
     resubmitted = TaxiShift::AppStoreConnect::ReviewSubmissionResubmitter.new(
       client: app_store_connect_rest_client,
       app_id: app.id,

@@ -8,6 +8,70 @@ class AppStoreConnectAuditVersionStateTest < Minitest::Test
       "INVALID_BINARY",
     )
   end
+
+  def test_waiting_for_review_version_is_auditable
+    version = {
+      "id" => "version-id",
+      "attributes" => {
+        "appVersionState" => "WAITING_FOR_REVIEW",
+        "versionString" => "1.0",
+        "createdDate" => "2026-07-18T08:00:00Z",
+      },
+    }
+    audit = TaxiShift::AppStoreConnect::Audit.new(client: Object.new)
+
+    assert_equal(version, audit.send(:select_version, [version]))
+  end
+end
+
+class FastlaneReleaseFlowTest < Minitest::Test
+  def setup
+    @fastfile = File.read(
+      File.expand_path("../../fastlane/Fastfile", __dir__),
+    )
+  end
+
+  def test_upload_testflight_always_audits_the_ipa
+    lane = section(
+      "lane :upload_testflight do |options|",
+      'desc "Show the current App Store version',
+    )
+
+    assert_includes(lane, "audit_ipa_privacy_manifest")
+  end
+
+  def test_asc_audit_uses_the_configured_app_store_version
+    method = section("def run_asc_audit", "platform :ios do")
+
+    assert_includes(
+      method,
+      'ENV["ASC_APP_VERSION"] ||= APP_STORE_VERSION',
+    )
+  end
+
+  def test_submit_review_pins_the_audited_version_id
+    lane = section(
+      "lane :submit_review do",
+      'desc "Prepare App Store screenshot files',
+    )
+    pin_index = lane.index('ENV["ASC_APP_VERSION_ID"] = version.id')
+    preflight_index = lane.index("asc_preflight")
+
+    refute_nil(pin_index)
+    refute_nil(preflight_index)
+    assert_operator(pin_index, :<, preflight_index)
+  end
+
+  private
+
+  def section(start_marker, end_marker)
+    start_index = @fastfile.index(start_marker)
+    refute_nil(start_index, "missing marker: #{start_marker}")
+    end_index = @fastfile.index(end_marker, start_index)
+    refute_nil(end_index, "missing marker: #{end_marker}")
+
+    @fastfile[start_index...end_index]
+  end
 end
 
 class AppStoreConnectSubmissionGateTest < Minitest::Test

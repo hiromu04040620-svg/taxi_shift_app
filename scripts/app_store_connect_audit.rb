@@ -182,6 +182,13 @@ module TaxiShift
         READY_FOR_REVIEW
         REJECTED
       ].freeze
+      SUBMITTED_VERSION_STATES = %w[
+        IN_REVIEW
+        WAITING_FOR_REVIEW
+      ].freeze
+      AUDITABLE_VERSION_STATES = (
+        EDITABLE_VERSION_STATES + SUBMITTED_VERSION_STATES
+      ).freeze
 
       def initialize(client:, app_id: APP_ID, iap_id: IAP_ID, repo_root: nil)
         @client = client
@@ -276,7 +283,7 @@ module TaxiShift
         candidates = versions.select do |version|
           state = version.dig("attributes", "appVersionState")
           version_string = version.dig("attributes", "versionString")
-          EDITABLE_VERSION_STATES.include?(state) &&
+          AUDITABLE_VERSION_STATES.include?(state) &&
             (requested_version.nil? || requested_version == version_string)
         end
         candidates.max_by { |version| version.dig("attributes", "createdDate").to_s }
