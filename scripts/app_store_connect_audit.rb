@@ -104,9 +104,79 @@ module TaxiShift
       end
     end
 
+    class ReviewSubmissionResubmitter
+      def initialize(client:, app_id: APP_ID)
+        @client = client
+        @app_id = app_id
+      end
+
+      def resubmit(version_id:)
+        unresolved_submissions.each do |submission|
+          item = submission_items(submission.fetch("id")).find do |candidate|
+            candidate.dig("relationships", "appStoreVersion", "data", "id") == version_id
+          end
+          next unless item
+
+          resolve(item) if item.dig("attributes", "state") == "REJECTED"
+          response = @client.patch(
+            "/v1/reviewSubmissions/#{submission.fetch("id")}",
+            body: {
+              data: {
+                type: "reviewSubmissions",
+                id: submission.fetch("id"),
+                attributes: { submitted: true },
+              },
+            },
+          )
+          return {
+            id: response.dig("data", "id"),
+            state: response.dig("data", "attributes", "state"),
+          }
+        end
+
+        nil
+      end
+
+      private
+
+      def unresolved_submissions
+        params = URI.encode_www_form(
+          "filter[state]" => "UNRESOLVED_ISSUES",
+          "filter[platform]" => "IOS",
+          "limit" => 10,
+        )
+        response = @client.get(
+          "/v1/apps/#{@app_id}/reviewSubmissions?#{params}",
+        )
+        Array(response["data"])
+      end
+
+      def submission_items(submission_id)
+        params = URI.encode_www_form("include" => "appStoreVersion", "limit" => 10)
+        response = @client.get(
+          "/v1/reviewSubmissions/#{submission_id}/items?#{params}",
+        )
+        Array(response["data"])
+      end
+
+      def resolve(item)
+        @client.patch(
+          "/v1/reviewSubmissionItems/#{item.fetch("id")}",
+          body: {
+            data: {
+              type: "reviewSubmissionItems",
+              id: item.fetch("id"),
+              attributes: { resolved: true },
+            },
+          },
+        )
+      end
+    end
+
     class Audit
       EDITABLE_VERSION_STATES = %w[
         DEVELOPER_REJECTED
+        INVALID_BINARY
         METADATA_REJECTED
         PREPARE_FOR_SUBMISSION
         READY_FOR_REVIEW
@@ -362,6 +432,9 @@ module TaxiShift
         unless READY_IAP_STATES.include?(iap[:state])
           issues << "#{product_id} の状態が READY_TO_SUBMIT ではありません: #{iap[:state] || "不明"}"
         end
+        if iap[:state] == "READY_TO_SUBMIT"
+          issues << "初回IAP remove_ads はApp Store Connect Webからアプリと同時提出してください"
+        end
 
         localizations = Array(iap[:localizations])
         if localizations.empty?
@@ -388,7 +461,8 @@ module TaxiShift
           VIDEO_EXTENSIONS.include?(File.extname(attachment[:file_name].to_s).downcase)
         end
         complete_video = videos.any? do |attachment|
-          attachment[:uploaded] && [nil, "COMPLETE"].include?(attachment[:asset_state])
+          attachment[:asset_state] == "COMPLETE" ||
+            (attachment[:uploaded] && attachment[:asset_state].nil?)
         end
         issues << "Sandbox購入を示す審査用動画が添付されていません" unless complete_video
       end
